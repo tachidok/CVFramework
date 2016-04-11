@@ -22,11 +22,11 @@ CATracker::CATracker()
 CATracker::~CATracker() { }
 
 // ======================================================================
-// Sets the pattern to search for
+// Initialise the tracker. Sets the pattern to search for
 // ======================================================================
-const unsigned CATracker::set_pattern(cv::Mat &image_pt,
-                                      const unsigned x, const unsigned y,
-                                      const unsigned half_pattern_size)
+const unsigned CATracker::initialise(cv::Mat &image_pt,
+                                     const unsigned x, const unsigned y,
+                                     const unsigned half_pattern_size)
 {
   // Check we are inside the limits
   if (Half_search_window_size > x || Half_search_window_size > y ||
@@ -60,8 +60,8 @@ void CATracker::update_pattern(cv::Mat &image_pt, const unsigned x,
                                const unsigned y)
 {
 
-    // Updates the pattern
-    set_pattern(image_pt, x, y, Half_pattern_size);
+    // Updates the pattern (Get a sub-image based on the coordinates)
+    initialise(image_pt, x, y, Half_pattern_size);
 
 }
 
@@ -79,9 +79,9 @@ void CATracker::delete_pattern()
 }
 
 // ======================================================================
-// Checks whether the pattern has been set
+// Checks whether the tracker has been initialised
 // ======================================================================
-bool CATracker::is_pattern_set()
+bool CATracker::initialised()
 {
     if (Pattern_pt != 0)
     {

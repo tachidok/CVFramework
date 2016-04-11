@@ -50,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // ======================================================================
     // OpenCV stuff
     // ======================================================================
+    // Opens and shows an image
     cv::Mat this_image = cv::imread("../data/image-0001.jpg");
     cv::imshow("Display Image", this_image);
 
@@ -99,8 +100,14 @@ MainWindow::MainWindow(QWidget *parent) :
     Y_tracker = 0;
 
     // The tracker
-    Tracker_pt = new CCSimpleTracker();
+    //Tracker_pt = new CCSimpleTracker();
     //Tracker_pt = new CCNormalDistTracker();
+    //Tracker_pt = new CCOpenCVTracker("MIL");
+    Tracker_pt = new CCOpenCVTracker("BOOSTING");
+    //Tracker_pt = new CCOpenCVTracker("MEDIANFLOW");
+    //Tracker_pt = new CCOpenCVTracker("TLD");
+    //Tracker_pt = new CCOpenCVTracker("KCF");
+
     // By defaul the left mouse button is not pressed
     Left_mouse_button_pressed = false;
 
@@ -254,7 +261,7 @@ void MainWindow::paint_image()
         // Get the coordinates of the tracker
         X_tracker = X_mouse;
         Y_tracker = Y_mouse;
-        Tracker_pt->set_pattern(image, X_tracker, Y_tracker, Aim_size);
+        Tracker_pt->initialise(image, X_tracker, Y_tracker, Aim_size);
 
         Do_Kalman = true;
         if (Do_Kalman)
@@ -262,76 +269,7 @@ void MainWindow::paint_image()
             // -------------------------------------------------------
             // Initialise Kalmans since this is a new set of data
             // -------------------------------------------------------
-            // Kalman X
-            // -------------------------------------------------------
-            // Before reset set default covariances for process noise
-            // and measurement noise
-            const double noise_covariance_Q = 1.0e-2; //1.0e-2
-            const double noise_covariance_R = 2.0;    //0.5
-            Kalman_filter_pt[0]->noise_covariance_Q() = noise_covariance_Q;
-            Kalman_filter_pt[0]->noise_covariance_R() = noise_covariance_R;
-            // Reset
-            Kalman_filter_pt[0]->reset();
-
-            // Set the initial state of the system x_0
-            Kalman_filter_pt[0]->x(0) = X_mouse; // x-position
-            Kalman_filter_pt[0]->x(1) = 0.0; // x-pixels per frame
-
-            std::cerr << "State vector (init)" << std::endl;
-            std::cerr << (*Kalman_filter_pt[0]->x()) << std::endl;
-
-            // Initialise covariance matrix P
-            const double dt = 1.0;
-            Kalman_filter_pt[0]->P(0, 0) = dt*dt*dt*dt/4.0;
-            Kalman_filter_pt[0]->P(0, 1) = dt*dt*dt/3.0;
-            Kalman_filter_pt[0]->P(1, 0) = dt*dt*dt/3.0;
-            Kalman_filter_pt[0]->P(1, 1) = dt*dt;
-
-            // Initilaise process noise covariance Q
-            Kalman_filter_pt[0]->Q(0, 0) = dt*dt*dt*dt/4.0 * noise_covariance_Q;
-            Kalman_filter_pt[0]->Q(0, 1) = dt*dt*dt/3.0 * noise_covariance_Q;
-            Kalman_filter_pt[0]->Q(1, 0) = dt*dt*dt/3.0 * noise_covariance_Q;
-            Kalman_filter_pt[0]->Q(1, 1) = dt*dt * noise_covariance_Q;
-
-            // Initialise transformation matrix H
-            Kalman_filter_pt[0]->H(0, 0) = 1.0;
-            Kalman_filter_pt[0]->H(0, 1) = 0.0;
-
-            // Set measurement (sensors) noise covariance
-            Kalman_filter_pt[0]->R(0, 0) = noise_covariance_R;
-
-            // -------------------------------------------------------
-            // Kalman Y
-            // -------------------------------------------------------
-            // Before reset set default covariances for process noise
-            // and measurement noise
-            Kalman_filter_pt[1]->noise_covariance_Q() = noise_covariance_Q;
-            Kalman_filter_pt[1]->noise_covariance_R() = noise_covariance_R;
-            // Reset
-            Kalman_filter_pt[1]->reset();
-
-            // Set the initial state of the system x_0
-            Kalman_filter_pt[1]->x(0) = Y_mouse; // y-position
-            Kalman_filter_pt[1]->x(1) = 0.0; // y-pixels per frame
-
-            // Initialise covariance matrix P
-            Kalman_filter_pt[1]->P(0, 0) = dt*dt*dt*dt/4.0;
-            Kalman_filter_pt[1]->P(0, 1) = dt*dt*dt/3.0;
-            Kalman_filter_pt[1]->P(1, 0) = dt*dt*dt/3.0;
-            Kalman_filter_pt[1]->P(1, 1) = dt*dt;
-
-            // Initilaise process noise covariance Q
-            Kalman_filter_pt[1]->Q(0, 0) = dt*dt*dt*dt/4.0 * noise_covariance_Q;
-            Kalman_filter_pt[1]->Q(0, 1) = dt*dt*dt/3.0 * noise_covariance_Q;
-            Kalman_filter_pt[1]->Q(1, 0) = dt*dt*dt/3.0 * noise_covariance_Q;
-            Kalman_filter_pt[1]->Q(1, 1) = dt*dt * noise_covariance_Q;
-
-            // Initialise transformation matrix H
-            Kalman_filter_pt[1]->H(0, 0) = 1.0;
-            Kalman_filter_pt[1]->H(0, 1) = 0.0;
-
-            // Set measurement (sensors) noise covariance
-            Kalman_filter_pt[1]->R(0, 0) = noise_covariance_R;
+            initialise_kalman();
 
         }
 
@@ -342,7 +280,7 @@ void MainWindow::paint_image()
     double equivalence_value = 0;
     // ----------------------------------------------------------
     // Do tracking? Only if there is a pattern to search for ...
-    if (Tracker_pt->is_pattern_set())
+    if (Tracker_pt->initialised())
     {
         // Draw search window (If we draw the search window here we can see
         // the position selected by the Tracker inside the search window)
@@ -353,113 +291,7 @@ void MainWindow::paint_image()
         // Apply Kalman
         if (Do_Kalman)
         {
-            // To compute dT
-#if 0
-            const double precTick = ticks;
-            const double ticks = (double) cv::getTickCount();
-            const double dT = (ticks - precTick) / cv::getTickFrequency(); //seconds
-            F->at<double>(0, 1) =  dT;
-#endif // #if 0
-            // The dt (one frame per time)
-            const double dt = 1.0;
-
-            // -------------------------------------------------------
-            // PREDICTION stage
-            // -------------------------------------------------------
-            // Prepara data for each Kalman and do prediction
-            // -------------------------------------------------------
-
-            // -------------------------------------------------------
-            // Kalman X
-            // -------------------------------------------------------
-            // Set the transition matrix
-            Kalman_filter_pt[0]->F(0, 0) = 1.0;
-            Kalman_filter_pt[0]->F(0, 1) = dt;
-            Kalman_filter_pt[0]->F(1, 0) = 0.0;
-            Kalman_filter_pt[0]->F(1, 1) = 1.0;
-
-            // Set control matrix
-            Kalman_filter_pt[0]->B(0, 0) = dt*dt/2.0;
-            Kalman_filter_pt[0]->B(1, 0) = dt;
-
-            // Set input control parameters
-            // Acceleration
-            const double a_x = 0.05; // pixels per frame
-            Kalman_filter_pt[0]->u(0) = a_x;
-
-            // -------------------------------------------------------
-            // Do prediction (Kalman filter)
-            // -------------------------------------------------------
-            cv::Mat prediction_x = Kalman_filter_pt[0]->predict();
-
-            // We can use this prediction in case we have no input
-            // from the sensor
-            // The prediction given by the model
-            const double this_x = prediction_x.at<double>(0, 0);
-            qDebug() << "KalmanPrediction X ("<< prediction_x.rows
-                     << ", " << prediction_x.cols << "): ";
-            std::cerr << prediction_x << std::endl;
-
-            // -------------------------------------------------------
-            // Kalman Y
-            // -------------------------------------------------------
-            // Set the transition matrix
-            Kalman_filter_pt[1]->F(0, 0) = 1.0;
-            Kalman_filter_pt[1]->F(0, 1) = dt;
-            Kalman_filter_pt[1]->F(1, 0) = 0.0;
-            Kalman_filter_pt[1]->F(1, 1) = 1.0;
-
-            // Set control matrix
-            Kalman_filter_pt[1]->B(0, 0) = dt*dt/2.0;
-            Kalman_filter_pt[1]->B(1, 0) = dt;
-
-            // Set input control parameters
-            // Acceleration
-            const double a_y = 0.05; // pixels per frame
-            Kalman_filter_pt[1]->u(0) = a_y;
-
-            // -------------------------------------------------
-            // Do prediction (Kalman filter)
-            // -------------------------------------------------
-            cv::Mat prediction_y = Kalman_filter_pt[1]->predict();
-
-            // We can use this prediction in case we have no input
-            // from the sensor
-            // The prediction given by the model
-            const double this_y = prediction_y.at<double>(0, 0);
-            qDebug() << "KalmanPrediction Y ("<< prediction_y.rows
-                     << ", " << prediction_y.cols << "): ";
-            std::cerr << prediction_y << std::endl;
-
-            // -------------------------------------------------
-            // UPDATE stage
-            // -------------------------------------------------
-            // Use the output of the tracker as the measurement
-            // of the sensor
-            // -------------------------------------------------
-            // Set the measured data for each Kalman
-            // -------------------------------------------------
-            // Kalman X
-            // -------------------------------------------------
-            Kalman_filter_pt[0]->z(0) = X_tracker;
-            //Kalman_filter_pt[0]->z(0) = X_mouse;
-            // Do update (Kalman filter)
-            cv::Mat updated_state_x = Kalman_filter_pt[0]->update();
-
-            // -------------------------------------------------
-            // Kalman Y
-            // -------------------------------------------------
-            Kalman_filter_pt[1]->z(0) = Y_tracker;
-            //Kalman_filter_pt[1]->z(0) = Y_mouse;
-            // Do update (Kalman filter)
-            cv::Mat updated_state_y = Kalman_filter_pt[1]->update();
-
-            // -------------------------------------------------
-            // Set variables for ploting and output
-            // Set the updated state into the X-variable
-            X_Kalman = updated_state_x.at<double>(0, 0);
-            // Set the updated state into the Y-variable
-            Y_Kalman = updated_state_y.at<double>(0, 0);
+            apply_kalman();
         }
 
     }
@@ -479,7 +311,7 @@ void MainWindow::paint_image()
 
     // ----------------------------------------------------------
     // Draw the pattern? Only if there is a pattern stored
-    if (Tracker_pt->is_pattern_set())
+    if (Tracker_pt->initialised())
     {
         // Draw an square based on the tracking coordinates
         draw_square(&image, X_tracker, Y_tracker, Aim_size, 0, 255, 0);
@@ -504,7 +336,7 @@ void MainWindow::paint_image()
     // Plot
     plot(image.rows, image.cols);
 
-    if (Tracker_pt->is_pattern_set() && Do_Kalman)
+    if (Tracker_pt->initialised() && Do_Kalman)
     {
         // Update the tracker using the Kalman output
         //X_tracker = X_Kalman;
@@ -903,4 +735,191 @@ void MainWindow::on_btn_decrease_search_window_clicked()
     {
         Aim_size-=Aim_size_increasing_step;
     }
+}
+
+void MainWindow::initialise_kalman()
+{
+    // Kalman X
+    // -------------------------------------------------------
+    // Before reset set default covariances for process noise
+    // and measurement noise
+    const double noise_covariance_Q = 1.0e-2; //1.0e-2
+    const double noise_covariance_R = 2.0;    //0.5
+    Kalman_filter_pt[0]->noise_covariance_Q() = noise_covariance_Q;
+    Kalman_filter_pt[0]->noise_covariance_R() = noise_covariance_R;
+    // Reset
+    Kalman_filter_pt[0]->reset();
+
+    // Set the initial state of the system x_0
+    Kalman_filter_pt[0]->x(0) = X_mouse; // x-position
+    Kalman_filter_pt[0]->x(1) = 0.0; // x-pixels per frame
+
+    //std::cerr << "State vector (init)" << std::endl;
+    //std::cerr << (*Kalman_filter_pt[0]->x()) << std::endl;
+
+    // Initialise covariance matrix P
+    const double dt = 1.0;
+    Kalman_filter_pt[0]->P(0, 0) = dt*dt*dt*dt/4.0;
+    Kalman_filter_pt[0]->P(0, 1) = dt*dt*dt/3.0;
+    Kalman_filter_pt[0]->P(1, 0) = dt*dt*dt/3.0;
+    Kalman_filter_pt[0]->P(1, 1) = dt*dt;
+
+    // Initilaise process noise covariance Q
+    Kalman_filter_pt[0]->Q(0, 0) = dt*dt*dt*dt/4.0 * noise_covariance_Q;
+    Kalman_filter_pt[0]->Q(0, 1) = dt*dt*dt/3.0 * noise_covariance_Q;
+    Kalman_filter_pt[0]->Q(1, 0) = dt*dt*dt/3.0 * noise_covariance_Q;
+    Kalman_filter_pt[0]->Q(1, 1) = dt*dt * noise_covariance_Q;
+
+    // Initialise transformation matrix H
+    Kalman_filter_pt[0]->H(0, 0) = 1.0;
+    Kalman_filter_pt[0]->H(0, 1) = 0.0;
+
+    // Set measurement (sensors) noise covariance
+    Kalman_filter_pt[0]->R(0, 0) = noise_covariance_R;
+
+    // -------------------------------------------------------
+    // Kalman Y
+    // -------------------------------------------------------
+    // Before reset set default covariances for process noise
+    // and measurement noise
+    Kalman_filter_pt[1]->noise_covariance_Q() = noise_covariance_Q;
+    Kalman_filter_pt[1]->noise_covariance_R() = noise_covariance_R;
+    // Reset
+    Kalman_filter_pt[1]->reset();
+
+    // Set the initial state of the system x_0
+    Kalman_filter_pt[1]->x(0) = Y_mouse; // y-position
+    Kalman_filter_pt[1]->x(1) = 0.0; // y-pixels per frame
+
+    // Initialise covariance matrix P
+    Kalman_filter_pt[1]->P(0, 0) = dt*dt*dt*dt/4.0;
+    Kalman_filter_pt[1]->P(0, 1) = dt*dt*dt/3.0;
+    Kalman_filter_pt[1]->P(1, 0) = dt*dt*dt/3.0;
+    Kalman_filter_pt[1]->P(1, 1) = dt*dt;
+
+    // Initilaise process noise covariance Q
+    Kalman_filter_pt[1]->Q(0, 0) = dt*dt*dt*dt/4.0 * noise_covariance_Q;
+    Kalman_filter_pt[1]->Q(0, 1) = dt*dt*dt/3.0 * noise_covariance_Q;
+    Kalman_filter_pt[1]->Q(1, 0) = dt*dt*dt/3.0 * noise_covariance_Q;
+    Kalman_filter_pt[1]->Q(1, 1) = dt*dt * noise_covariance_Q;
+
+    // Initialise transformation matrix H
+    Kalman_filter_pt[1]->H(0, 0) = 1.0;
+    Kalman_filter_pt[1]->H(0, 1) = 0.0;
+
+    // Set measurement (sensors) noise covariance
+    Kalman_filter_pt[1]->R(0, 0) = noise_covariance_R;
+
+}
+
+void MainWindow::apply_kalman()
+{
+    // To compute dT
+#if 0
+    const double precTick = ticks;
+    const double ticks = (double) cv::getTickCount();
+    const double dT = (ticks - precTick) / cv::getTickFrequency(); //seconds
+    F->at<double>(0, 1) =  dT;
+#endif // #if 0
+    // The dt (one frame per time)
+    const double dt = 1.0;
+
+    // -------------------------------------------------------
+    // PREDICTION stage
+    // -------------------------------------------------------
+    // Prepara data for each Kalman and do prediction
+    // -------------------------------------------------------
+
+    // -------------------------------------------------------
+    // Kalman X
+    // -------------------------------------------------------
+    // Set the transition matrix
+    Kalman_filter_pt[0]->F(0, 0) = 1.0;
+    Kalman_filter_pt[0]->F(0, 1) = dt;
+    Kalman_filter_pt[0]->F(1, 0) = 0.0;
+    Kalman_filter_pt[0]->F(1, 1) = 1.0;
+
+    // Set control matrix
+    Kalman_filter_pt[0]->B(0, 0) = dt*dt/2.0;
+    Kalman_filter_pt[0]->B(1, 0) = dt;
+
+    // Set input control parameters
+    // Acceleration
+    const double a_x = 0.05; // pixels per frame
+    Kalman_filter_pt[0]->u(0) = a_x;
+
+    // -------------------------------------------------------
+    // Do prediction (Kalman filter)
+    // -------------------------------------------------------
+    cv::Mat prediction_x = Kalman_filter_pt[0]->predict();
+
+    // We can use this prediction in case we have no input
+    // from the sensor
+    // The prediction given by the model
+    const double this_x = prediction_x.at<double>(0, 0);
+    qDebug() << "KalmanPrediction X ("<< prediction_x.rows
+             << ", " << prediction_x.cols << "): ";
+    std::cerr << prediction_x << std::endl;
+
+    // -------------------------------------------------------
+    // Kalman Y
+    // -------------------------------------------------------
+    // Set the transition matrix
+    Kalman_filter_pt[1]->F(0, 0) = 1.0;
+    Kalman_filter_pt[1]->F(0, 1) = dt;
+    Kalman_filter_pt[1]->F(1, 0) = 0.0;
+    Kalman_filter_pt[1]->F(1, 1) = 1.0;
+
+    // Set control matrix
+    Kalman_filter_pt[1]->B(0, 0) = dt*dt/2.0;
+    Kalman_filter_pt[1]->B(1, 0) = dt;
+
+    // Set input control parameters
+    // Acceleration
+    const double a_y = 0.05; // pixels per frame
+    Kalman_filter_pt[1]->u(0) = a_y;
+
+    // -------------------------------------------------
+    // Do prediction (Kalman filter)
+    // -------------------------------------------------
+    cv::Mat prediction_y = Kalman_filter_pt[1]->predict();
+
+    // We can use this prediction in case we have no input
+    // from the sensor
+    // The prediction given by the model
+    const double this_y = prediction_y.at<double>(0, 0);
+    qDebug() << "KalmanPrediction Y ("<< prediction_y.rows
+             << ", " << prediction_y.cols << "): ";
+    std::cerr << prediction_y << std::endl;
+
+    // -------------------------------------------------
+    // UPDATE stage
+    // -------------------------------------------------
+    // Use the output of the tracker as the measurement
+    // of the sensor
+    // -------------------------------------------------
+    // Set the measured data for each Kalman
+    // -------------------------------------------------
+    // Kalman X
+    // -------------------------------------------------
+    Kalman_filter_pt[0]->z(0) = X_tracker;
+    //Kalman_filter_pt[0]->z(0) = X_mouse;
+    // Do update (Kalman filter)
+    cv::Mat updated_state_x = Kalman_filter_pt[0]->update();
+
+    // -------------------------------------------------
+    // Kalman Y
+    // -------------------------------------------------
+    Kalman_filter_pt[1]->z(0) = Y_tracker;
+    //Kalman_filter_pt[1]->z(0) = Y_mouse;
+    // Do update (Kalman filter)
+    cv::Mat updated_state_y = Kalman_filter_pt[1]->update();
+
+    // -------------------------------------------------
+    // Set variables for ploting and output
+    // Set the updated state into the X-variable
+    X_Kalman = updated_state_x.at<double>(0, 0);
+    // Set the updated state into the Y-variable
+    Y_Kalman = updated_state_y.at<double>(0, 0);
+
 }

@@ -28,10 +28,10 @@ public:
     // Empty destructor
     virtual ~CATracker();
 
-    // Sets the pattern to search for
-    const unsigned set_pattern(cv::Mat &image_pt,
-                               const unsigned x, const unsigned y,
-                               const unsigned half_pattern_size);
+    // Initialise the tracker. Sets the pattern to search for
+    virtual const unsigned initialise(cv::Mat &image_pt,
+                                      const unsigned x, const unsigned y,
+                                      const unsigned half_pattern_size);
 
     // Updates the pattern to search for
     void update_pattern(cv::Mat &image_pt, const unsigned x, const unsigned y);
@@ -39,8 +39,8 @@ public:
     // Deletes the pattern
     void delete_pattern();
 
-    // Checks whether the pattern has been set
-    bool is_pattern_set();
+    // Checks whether the tracker has been initialised
+    bool initialised();
 
     // Pure virtual function to be implemented by derived classes. Returns the
     // x and y position of the window that best matches the pattern

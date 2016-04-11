@@ -33,6 +33,7 @@ class MainWindow;
 #include "../../../src/tracker/catracker.h"
 #include "../../../src/tracker/ccsimpletracker.h"
 #include "../../../src/tracker/ccnormaldisttracker.h"
+#include "../../../src/tracker/ccopencvtracker.h"
 
 // Kalman Filter
 #include "../../../src/kalman/cckalmanfilter.h"
@@ -161,6 +162,12 @@ protected:
 
     // Kalman Filter objects, x and y independently
     CCKalmanFilter **Kalman_filter_pt;
+
+    // Initialise Kalman with all its data
+    void initialise_kalman();
+
+    // Apply Kalman
+    void apply_kalman();
 
     // ======================================================================
     // Aim stuff
