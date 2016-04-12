@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1566</width>
-    <height>518</height>
+    <height>542</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -230,6 +230,32 @@
      </rect>
     </property>
    </widget>
+   <widget class="QLabel" name="lbl_global_status">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>450</y>
+      <width>1421</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>I am feeling good!!!</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_global_status_lbl">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>450</y>
+      <width>105</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Current status:</string>
+    </property>
+   </widget>
    <zorder>layoutWidget</zorder>
    <zorder>layoutWidget</zorder>
    <zorder>layoutWidget</zorder>
@@ -240,6 +266,8 @@
    <zorder>wdg_plot_x</zorder>
    <zorder>lbl_image_search</zorder>
    <zorder>wdg_plot_y</zorder>
+   <zorder>lbl_global_status</zorder>
+   <zorder>lbl_global_status_lbl</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

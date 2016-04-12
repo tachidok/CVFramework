@@ -108,14 +108,17 @@ MainWindow::MainWindow(QWidget *parent) :
     //Tracker_pt = new CCOpenCVTracker("TLD");
     //Tracker_pt = new CCOpenCVTracker("KCF");
 
+    // Initialise found pattern flag
+    Found_pattern = false;
+
     // By defaul the left mouse button is not pressed
     Left_mouse_button_pressed = false;
 
     // Maximum and minimum aim size
-    Max_aim_size = 15;
-    Min_aim_size = 3;
+    Max_aim_size = 21;
+    Min_aim_size = 7;
     // Initial aim size
-    Aim_size = 3;
+    Aim_size = 11;
     // Increment step for aim size
     Aim_size_increasing_step = 2;
 
@@ -261,7 +264,14 @@ void MainWindow::paint_image()
         // Get the coordinates of the tracker
         X_tracker = X_mouse;
         Y_tracker = Y_mouse;
-        Tracker_pt->initialise(image, X_tracker, Y_tracker, Aim_size);
+        if ((Tracker_pt->initialise(image, X_tracker, Y_tracker, Aim_size)))
+        {
+            ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker was not initialised correctly</font>");
+        }
+        else
+        {
+            ui->lbl_global_status->setText("<font color='green'>OK: Tracker initialised correctly</font>");
+        }
 
         Do_Kalman = true;
         if (Do_Kalman)
@@ -273,25 +283,40 @@ void MainWindow::paint_image()
 
         }
 
+        // Disable some buttons
+        ui->btn_decrease_search_window->setDisabled(true);
+        ui->btn_increase_search_window->setDisabled(true);
+
         Left_mouse_button_pressed = false;
 
     }
 
     double equivalence_value = 0;
+    // Restart found pattern flag
+    Found_pattern = false;
     // ----------------------------------------------------------
     // Do tracking? Only if there is a pattern to search for ...
     if (Tracker_pt->initialised())
     {
         // Draw search window (If we draw the search window here we can see
         // the position selected by the Tracker inside the search window)
-        draw_square(&image, X_tracker, Y_tracker, Aim_size*2, 255, 255, 0);
-        Tracker_pt->search_pattern(image, X_tracker, Y_tracker,
-                                   Aim_size*2, equivalence_value);
+        draw_square(&image, X_tracker, Y_tracker, Aim_size*3, 255, 255, 0, 2);
+        if (Tracker_pt->search_pattern(image, X_tracker, Y_tracker,
+                                   Aim_size*2, equivalence_value))
+        {
+            Found_pattern = false;
+            ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker did not found the pattern</font>");
+        }
+        else
+        {
+            Found_pattern = true;
+            ui->lbl_global_status->setText("<font color='green'>OK: Tracker found the pattern</font>");
+        }
 
         // Apply Kalman
         if (Do_Kalman)
         {
-            apply_kalman();
+            apply_kalman(!Found_pattern);
         }
 
     }
@@ -305,7 +330,9 @@ void MainWindow::paint_image()
     X_mouse = ui->label_image->getX();
     Y_mouse = ui->label_image->getY();
     //qDebug() << X << Y;
-    draw_aim(&image, X_mouse, Y_mouse, Aim_size, 255, 0, 0);
+    // Green aim for mouse
+    draw_aim(&image, X_mouse, Y_mouse, Aim_size/2, 0, 255, 0);
+    draw_square(&image, X_mouse, Y_mouse, Aim_size, 0, 255, 0);
 
     //qDebug() << X << Y;
 
@@ -313,15 +340,19 @@ void MainWindow::paint_image()
     // Draw the pattern? Only if there is a pattern stored
     if (Tracker_pt->initialised())
     {
-        // Draw an square based on the tracking coordinates
-        draw_square(&image, X_tracker, Y_tracker, Aim_size, 0, 255, 0);
-        ui->lbl_status_tracker->setText(QString("X=%1 Y=%2 EV=%3").arg(X_tracker).arg(Y_tracker).arg(equivalence_value));
-        ui->lbl_image_search->setPixmap(ASM::cvMatToQPixmap(*(Tracker_pt->pattern_pt())));
-        //ui->lbl_image_search->setPixmap(QPixmap::fromImage(*(Tracker_pt->pattern_pt()))); // tachidok
+        if (Found_pattern)
+        {
+            // Draw an square based on the tracking coordinates (red for tracker)
+            draw_square(&image, X_tracker, Y_tracker, Aim_size, 255, 0, 0);
+            ui->lbl_status_tracker->setText(QString("X=%1 Y=%2 EV=%3").arg(X_tracker).arg(Y_tracker).arg(equivalence_value));
+            ui->lbl_image_search->setPixmap(ASM::cvMatToQPixmap(*(Tracker_pt->pattern_pt())));
+            //ui->lbl_image_search->setPixmap(QPixmap::fromImage(*(Tracker_pt->pattern_pt()))); // tachidok
+        }
 
         if (Do_Kalman)
         {
             // Draw an square based on the predicted Kalman coordinates
+            // (blue for Kalman)
             draw_square(&image, X_Kalman, Y_Kalman, Aim_size, 0, 0, 255);
             // Output the Kalman coordinates
             ui->lbl_status_kalman->setText(QString("X=%1 Y=%2").arg(X_Kalman).arg(Y_Kalman));
@@ -489,149 +520,41 @@ void MainWindow::on_label_image_linkHovered(const QString &link)
 // ======================================================================
 // Method to draw an aim
 // ======================================================================
-void MainWindow::draw_aim(cv::Mat *image_pt, const unsigned x, const unsigned y,
-                          const unsigned half_size,
-                          const unsigned r, const unsigned g, const unsigned b)
+void MainWindow::draw_aim(cv::Mat *image_pt, const unsigned x,
+                          const unsigned y, const unsigned half_size,
+                          const unsigned r, const unsigned g, const unsigned b,
+                          const unsigned thickness,
+                          const unsigned type_line)
 { 
     // The centre of the aim MUST be wihtin the limits of the image
     if (static_cast<int>(x) > image_pt->cols) {return;}
     if (static_cast<int>(y) > image_pt->rows) {return;}
 
-    // Get the channels of the image
-    const int channels = image_pt->channels();
-
-    // Get the image size
-    const unsigned height = image_pt->rows;
-    const unsigned width = image_pt->cols * channels;
-
-    // Set the left, right, lower, and upper limits for drawing
-    int left_limit = (x-half_size)*channels;
-    int right_limit = (x+half_size)*channels;
-    int lower_limit = y-half_size;
-    int upper_limit = y+half_size;
-
-    if (left_limit < 0)
-    {
-        left_limit = 0;
-    }
-    if (right_limit > static_cast<int>(width))
-    {
-        right_limit = width;
-    }
-
-    if (lower_limit < 0)
-    {
-        lower_limit = 0;
-    }
-    if (upper_limit > static_cast<int>(height))
-    {
-        upper_limit = height;
-    }
-
-    // -----------------------------------------
-    // Paint horizontal line
-    // Get a pointer to the y-row of the image
-    unsigned char *p = image_pt->ptr<uchar>(y);
-    for (unsigned i = left_limit; static_cast<int>(i) < right_limit; i+=channels)
-    {
-        p[i+0] = b;
-        p[i+1] = g;
-        p[i+2] = r;
-        //p[i+3] = a; // no alpha value
-    }
-
-    // -----------------------------------------
-    // Paint vertical line
-    const unsigned x_position = x*channels;
-    for (unsigned i = lower_limit; static_cast<int>(i) < upper_limit; i++)
-    {
-        // Get a pointer to the i-row of the image
-        unsigned char *p = image_pt->ptr<uchar>(i);
-        p[x_position+0] = b;
-        p[x_position+1] = g;
-        p[x_position+2] = r;
-        //p[x_position+3] = a; // no alpha value
-    }
-
+    // Horizontal line
+    cv::line(*image_pt, cv::Point(x-half_size, y), cv::Point(x+half_size, y),
+             cv::Scalar(b, g, r), thickness);
+    // Vertical line
+    cv::line(*image_pt, cv::Point(x, y-half_size), cv::Point(x, y+half_size),
+             cv::Scalar(b, g, r), thickness, type_line);
 }
 
 // ======================================================================
 // Method to draw a square
 // ======================================================================
-void MainWindow::draw_square(cv::Mat *image_pt, const unsigned x, const unsigned y,
-                             const unsigned half_size,
-                             const unsigned r, const unsigned g, const unsigned b)
+void MainWindow::draw_square(cv::Mat *image_pt, const unsigned x,
+                             const unsigned y, const unsigned half_size,
+                             const unsigned r, const unsigned g, const unsigned b,
+                             const unsigned thickness,
+                             const unsigned type_line)
 {
     // The centre of the aim MUST be wihtin the limits of the image
     if (static_cast<int>(x) > image_pt->cols) {return;}
     if (static_cast<int>(y) > image_pt->rows) {return;}
 
-    // Get the channels of the image
-    const int channels = image_pt->channels();
-
-    // Get the image size
-    const unsigned height = image_pt->rows;
-    const unsigned width = image_pt->cols * channels;
-
-    // Set the left, right, lower, and upper limits for drawing
-    int left_limit = (x-half_size)*channels;
-    int right_limit = (x+half_size)*channels;
-    int lower_limit = y-half_size;
-    int upper_limit = y+half_size;
-
-    if (left_limit < 0)
-    {
-        left_limit = 0;
-    }
-    if (right_limit > static_cast<int>(width))
-    {
-        right_limit = width;
-    }
-
-    if (lower_limit < 0)
-    {
-        lower_limit = 0;
-    }
-    if (upper_limit > static_cast<int>(height))
-    {
-        upper_limit = height;
-    }
-
-    // ---------------------------------------------------
-    // Paint horizontal lines
-    // Get a pointer to the y-row of the image
-    unsigned char *p_lower = image_pt->ptr<uchar>(lower_limit);
-    unsigned char *p_upper = image_pt->ptr<uchar>(upper_limit-1);
-    for (unsigned i = left_limit; static_cast<int>(i) < right_limit; i+=channels)
-    {
-        p_lower[i+0] = b;
-        p_lower[i+1] = g;
-        p_lower[i+2] = r;
-        //p_lower[i+3] = a; // no alpha value
-
-        p_upper[i+0] = b;
-        p_upper[i+1] = g;
-        p_upper[i+2] = r;
-        //p_upper[i+3] = a; // no alpha value
-    }
-
-    // ---------------------------------------------------
-    // Paint vertical lines
-    for (unsigned i = lower_limit; static_cast<int>(i) < upper_limit; i++)
-    {
-        // Get a pointer to the i-row of the image
-        unsigned char *p = image_pt->ptr<uchar>(i);
-        p[left_limit+0] = b;
-        p[left_limit+1] = g;
-        p[left_limit+2] = r;
-        //p[left_limit+3] = a; // no alpha value
-
-        p[(right_limit-1*channels)+0] = b;
-        p[(right_limit-1*channels)+1] = g;
-        p[(right_limit-1*channels)+2] = r;
-        //p[(right_limit-1)+3] = a; // no alpha value
-    }
-
+    // Create a Rect object (integer due to no sub-pixels)
+    cv::Rect draw_rect(x-half_size, y-half_size, half_size*2, half_size*2);
+    cv::rectangle(*image_pt, draw_rect, cv::Scalar(b, g, r), thickness,
+                  type_line);
 }
 
 // ======================================================================
@@ -639,31 +562,9 @@ void MainWindow::draw_square(cv::Mat *image_pt, const unsigned x, const unsigned
 // ======================================================================
 void MainWindow::plot(const unsigned y_max, const unsigned x_max)
 {
-    const unsigned step = 10;
-
     // Add the current mouse coordinates to the data to plot
     Mouse_coordinates[0].push_back(X_mouse);
     Mouse_coordinates[1].push_back(Y_mouse);
-
-#if 0
-    static bool upwards = true;
-    if (upwards && Y_Kalman > y_max)
-    {
-        upwards = false;
-    }
-
-    if (!upwards && Y_Kalman == 0)
-    {
-        upwards = true;
-    }
-
-    if (upwards)
-        Y_Kalman+=step;
-    else
-        Y_Kalman-=step;
-
-    //X_Kalman+= delete_counter;
-#endif // #if 0
 
     // Add the current tracker coordinates to the data to plot
     Tracker_coordinates[0].push_back(X_tracker);
@@ -680,17 +581,17 @@ void MainWindow::plot(const unsigned y_max, const unsigned x_max)
 
     // Assign some data
     // ---------------------------------------------------------------
-    // Mouse (RED)
+    // Mouse (GREEN)
     //ui->wdg_plot->graph(0)->setLineStyle(QCPGraph::lsNone);
-    ui->wdg_plot_x->graph(0)->setPen(QPen(QColor(255,0,0)));
+    ui->wdg_plot_x->graph(0)->setPen(QPen(QColor(0,255,0)));
     ui->wdg_plot_x->graph(0)->setData(time_data, Mouse_coordinates[0]);
-    ui->wdg_plot_y->graph(0)->setPen(QPen(QColor(255,0,0)));
+    ui->wdg_plot_y->graph(0)->setPen(QPen(QColor(0,255,0)));
     ui->wdg_plot_y->graph(0)->setData(time_data, Mouse_coordinates[1]);
     // ---------------------------------------------------------------
-    // Tracker (GREEN)
-    ui->wdg_plot_x->graph(1)->setPen(QPen(QColor(0,255,0)));
+    // Tracker (RED)
+    ui->wdg_plot_x->graph(1)->setPen(QPen(QColor(255,0,0)));
     ui->wdg_plot_x->graph(1)->setData(time_data, Tracker_coordinates[0]);
-    ui->wdg_plot_y->graph(1)->setPen(QPen(QColor(0,255,0)));
+    ui->wdg_plot_y->graph(1)->setPen(QPen(QColor(255,0,0)));
     ui->wdg_plot_y->graph(1)->setData(time_data, Tracker_coordinates[1]);
     // ---------------------------------------------------------------
     // Kalman (BLUE)
@@ -812,7 +713,7 @@ void MainWindow::initialise_kalman()
 
 }
 
-void MainWindow::apply_kalman()
+void MainWindow::apply_kalman(const bool predict_only)
 {
     // To compute dT
 #if 0
@@ -891,6 +792,17 @@ void MainWindow::apply_kalman()
     qDebug() << "KalmanPrediction Y ("<< prediction_y.rows
              << ", " << prediction_y.cols << "): ";
     std::cerr << prediction_y << std::endl;
+
+    // Only do prediction step, do not update using sensores measurements
+    if (predict_only)
+    {
+        // Set variables for ploting and output
+        // Set the predicted state into the X-variable
+        X_Kalman = prediction_x.at<double>(0, 0);
+        // Set the predicted state into the Y-variable
+        Y_Kalman = prediction_y.at<double>(0, 0);
+        return;
+    }
 
     // -------------------------------------------------
     // UPDATE stage

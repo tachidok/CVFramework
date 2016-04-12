@@ -36,6 +36,9 @@ protected:
     // An instance of the tracker from openCV
     cv::Ptr<cv::Tracker> opencv_tracker_pt;
 
+    // Store the tracker name
+    const std::string Tracker_name;
+
 };
 
 #endif // CCOPENCVTRACKER_H

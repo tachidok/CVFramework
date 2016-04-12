@@ -144,6 +144,9 @@ protected:
     // The tracker object
     CATracker *Tracker_pt;
 
+    // Found patern
+    bool Found_pattern;
+
     // ======================================================================
     // Kalman stuff
     // ======================================================================
@@ -167,7 +170,7 @@ protected:
     void initialise_kalman();
 
     // Apply Kalman
-    void apply_kalman();
+    void apply_kalman(const bool predict_only);
 
     // ======================================================================
     // Aim stuff
@@ -186,12 +189,16 @@ protected:
     // Method to draw an aim
     void draw_aim(cv::Mat *image_pt, const unsigned x, const unsigned y,
                   const unsigned half_size,
-                  const unsigned r, const unsigned g, const unsigned b);
+                  const unsigned r, const unsigned g, const unsigned b,
+                  const unsigned thickness = 1,
+                  const unsigned type_line = cv::LINE_8);
 
     // Draw a square
     void draw_square(cv::Mat *image_pt, const unsigned x, const unsigned y,
                      const unsigned half_size,
-                     const unsigned r, const unsigned g, const unsigned b);
+                     const unsigned r, const unsigned g, const unsigned b,
+                     const unsigned thickness = 1,
+                     const unsigned type_line = cv::LINE_8);
 
     // ======================================================================
     // Plot stuff

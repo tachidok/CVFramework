@@ -4,19 +4,8 @@
 // Constructor
 // ======================================================================
 CCOpenCVTracker::CCOpenCVTracker(const std::string &tracker_name)
-    : CATracker()
-{
-    // Create a cv::string from the input string
-    cv::String cv_tracker_name(tracker_name);
-    // Create an instance of the specified openCV tracker
-    opencv_tracker_pt = cv::Tracker::create(cv_tracker_name);
-    if (opencv_tracker_pt == 0)
-    {
-        // Error, the tracker could not be created
-        quick_exit(-1);
-    }
-
-}
+    : CATracker(), Tracker_name(tracker_name)
+{ }
 
 // ======================================================================
 // Empty destructor (memory is automatically unallocated by openCV)
@@ -35,6 +24,22 @@ const unsigned CCOpenCVTracker::initialise(cv::Mat &image_pt,
       static_cast<int>(Half_search_window_size)*2 > image_pt.cols ||
       static_cast<int>(Half_search_window_size)*2 > image_pt.rows)
   {return 1;}
+
+  // Free anything within the tracker
+  if (opencv_tracker_pt!=0)
+  {
+      opencv_tracker_pt->clear();
+  }
+
+  // Create a cv::string from the input string
+  cv::String cv_tracker_name(Tracker_name);
+  // Create an instance of the specified openCV tracker
+  opencv_tracker_pt = cv::Tracker::create(cv_tracker_name);
+  if (opencv_tracker_pt == 0)
+  {
+      // Error
+      return 1;
+  }
 
   // Set the patter size
   Half_pattern_size = half_pattern_size;
@@ -114,12 +119,12 @@ const unsigned CCOpenCVTracker::search_pattern(cv::Mat &image_pt,
     // --------------------------------------------------------------------
     // Return the x and y position based on the complete image
     // --------------------------------------------------------------------
-    qDebug() << "InputX: " << x << "InputY: " << y;
+    //qDebug() << "InputX: " << x << "InputY: " << y;
 
     x = bounding_box.x + bounding_box.width/2.0;
     y = bounding_box.y + bounding_box.height/2.0;
 
-    qDebug() << "OutputX: " << x << "OutputY: " << y;
+    //qDebug() << "OutputX: " << x << "OutputY: " << y;
 
     return 0;
 
