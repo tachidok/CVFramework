@@ -43,16 +43,21 @@ MainWindow::MainWindow(QWidget *parent) :
     Qtimer_pt = new QTimer();
     connect(Qtimer_pt, SIGNAL(timeout()), this, SLOT(paint_image()));
     // Set miliseconds for timer
-    Timer_milisecond = 100;
+    Timer_milisecond = 50;
 
 #endif // #ifdef T_USE_TIMER
 
     // ======================================================================
     // OpenCV stuff
     // ======================================================================
+    // Set mouse callback
+#if 0
+    cv::setMouseCallback("Video", onMouse, 0);
     // Opens and shows an image
-    cv::Mat this_image = cv::imread("../data/image-0001.jpg");
-    cv::imshow("Display Image", this_image);
+    cv::Mat live_image = cv::imread("../data/image-0001.jpg");
+    cv::namedWindow("Video");
+    cv::imshow("Video", live_image);
+#endif // #if 0
 
     // ======================================================================
     // Image stuff
@@ -118,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent) :
     Max_aim_size = 21;
     Min_aim_size = 7;
     // Initial aim size
-    Aim_size = 11;
+    Aim_size = 21;
     // Increment step for aim size
     Aim_size_increasing_step = 2;
 
@@ -209,10 +214,43 @@ MainWindow::~MainWindow()
 
 }
 
+#define T_IMAGE_FROM_FILE
+//#define T_IMAGE_FROM_CAPTURE
+
 #if 1
 // Draws an image in the "label" object of the ui
 void MainWindow::paint_image()
 {
+#ifdef T_IMAGE_FROM_CAPTURE
+    //QPixmap pixmap(QPixmap::grabWindow(QWidget::winId(),0,0,400,320));
+    //QPixmap pixmap(QPixmap::grabWindow(QApplication::desktop()->winId(),
+    //                                   500, 500, QApplication::desktop()->width(), QApplication::desktop()->height()));
+    //QPixmap pixmap(QPixmap::grabWindow(QWidget::winId()));
+
+    // Capture the right-upper region of the desktop
+    int width_capture = 640;
+    int height_capture = 480;
+    int desktop_width = QApplication::desktop()->width();
+    int desktop_height = QApplication::desktop()->height();
+    QPixmap pixmap(QPixmap::grabWindow(QApplication::desktop()->winId(),
+                                       desktop_width - width_capture,
+                                       0,
+                                       width_capture, height_capture));
+
+    // The image, Transfrom from QPixmap to cv::Mat ('false' argument for
+    // not cloning data into cv::Mat)
+    cv::Mat live_image = ASM::QPixmapToCvMat(pixmap, false);
+
+    // Resize the input image and output it in the same image
+    //cv::resize(live_image, live_image, cv::Size(640, 480));
+    //cv::namedWindow("Live-video");
+    //cv::imshow("Live-video", live_image);
+
+    //ui->lbl_global_status->setText("<font color='red'>ERROR: Getting image</font>");
+    //return;
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
+
+#ifdef T_IMAGE_FROM_FILE
     // ----------------------------------------------------------
     // Set the image filename
     // ----------------------------------------------------------
@@ -249,10 +287,14 @@ void MainWindow::paint_image()
     // ----------------------------------------------------------
     // Load the image into the image object (we do not use a pointer
     // since this is the only place where we use the image)
+
     cv::Mat image = cv::imread(full_image_name.toStdString());
+
     // Qimage_pt->load(full_image_name);
     // Increment the image index
     Index_image+=Increment_image_number;
+
+#endif // #ifdef T_IMAGE_FROM_FILE
 
     // ----------------------------------------------------------
     // Tracking
@@ -264,7 +306,12 @@ void MainWindow::paint_image()
         // Get the coordinates of the tracker
         X_tracker = X_mouse;
         Y_tracker = Y_mouse;
+#ifdef T_IMAGE_FROM_FILE
         if ((Tracker_pt->initialise(image, X_tracker, Y_tracker, Aim_size)))
+#endif // #ifdef T_IMAGE_FROM_FILE
+#ifdef T_IMAGE_FROM_CAPTURE
+        if ((Tracker_pt->initialise(live_image, X_tracker, Y_tracker, Aim_size)))
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
         {
             ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker was not initialised correctly</font>");
         }
@@ -300,9 +347,20 @@ void MainWindow::paint_image()
     {
         // Draw search window (If we draw the search window here we can see
         // the position selected by the Tracker inside the search window)
+#ifdef T_IMAGE_FROM_FILE
         draw_square(&image, X_tracker, Y_tracker, Aim_size*3, 255, 255, 0, 2);
+#endif // #ifdef T_IMAGE_FROM_FILE
+#ifdef T_IMAGE_FROM_CAPTURE
+        draw_square(&live_image, X_tracker, Y_tracker, Aim_size*3, 255, 255, 0, 2);
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
+#ifdef T_IMAGE_FROM_FILE
         if (Tracker_pt->search_pattern(image, X_tracker, Y_tracker,
-                                   Aim_size*2, equivalence_value))
+                                       Aim_size*2, equivalence_value))
+#endif // #ifdef T_IMAGE_FROM_FILE
+#ifdef T_IMAGE_FROM_CAPTURE
+        if (Tracker_pt->search_pattern(live_image, X_tracker, Y_tracker,
+                                       Aim_size*2, equivalence_value))
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
         {
             Found_pattern = false;
             ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker did not found the pattern</font>");
@@ -331,8 +389,18 @@ void MainWindow::paint_image()
     Y_mouse = ui->label_image->getY();
     //qDebug() << X << Y;
     // Green aim for mouse
+#ifdef T_IMAGE_FROM_FILE
     draw_aim(&image, X_mouse, Y_mouse, Aim_size/2, 0, 255, 0);
+#endif // #ifdef T_IMAGE_FROM_FILE
+#ifdef T_IMAGE_FROM_CAPTURE
+    draw_aim(&live_image, X_mouse, Y_mouse, Aim_size/2, 0, 255, 0);
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
+#ifdef T_IMAGE_FROM_FILE
     draw_square(&image, X_mouse, Y_mouse, Aim_size, 0, 255, 0);
+#endif // #ifdef T_IMAGE_FROM_FILE
+#ifdef T_IMAGE_FROM_CAPTURE
+    draw_square(&live_image, X_mouse, Y_mouse, Aim_size, 0, 255, 0);
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
 
     //qDebug() << X << Y;
 
@@ -343,8 +411,17 @@ void MainWindow::paint_image()
         if (Found_pattern)
         {
             // Draw an square based on the tracking coordinates (red for tracker)
+#ifdef T_IMAGE_FROM_FILE
             draw_square(&image, X_tracker, Y_tracker, Aim_size, 255, 0, 0);
+#endif // #ifdef T_IMAGE_FROM_FILE
+#ifdef T_IMAGE_FROM_CAPTURE
+            draw_square(&live_image, X_tracker, Y_tracker, Aim_size, 255, 0, 0);
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
             ui->lbl_status_tracker->setText(QString("X=%1 Y=%2 EV=%3").arg(X_tracker).arg(Y_tracker).arg(equivalence_value));
+            //cv::namedWindow("Pattern");
+            //cv::Mat output_pattern;
+            //cv::resize(*(Tracker_pt->pattern_pt()), output_pattern, cv::Size(80, 60));
+            //cv::imshow("Pattern", output_pattern);
             ui->lbl_image_search->setPixmap(ASM::cvMatToQPixmap(*(Tracker_pt->pattern_pt())));
             //ui->lbl_image_search->setPixmap(QPixmap::fromImage(*(Tracker_pt->pattern_pt()))); // tachidok
         }
@@ -353,7 +430,12 @@ void MainWindow::paint_image()
         {
             // Draw an square based on the predicted Kalman coordinates
             // (blue for Kalman)
+#ifdef T_IMAGE_FROM_FILE
             draw_square(&image, X_Kalman, Y_Kalman, Aim_size, 0, 0, 255);
+#endif // #ifdef T_IMAGE_FROM_FILE
+#ifdef T_IMAGE_FROM_CAPTURE
+            draw_square(&live_image, X_Kalman, Y_Kalman, Aim_size, 0, 0, 255);
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
             // Output the Kalman coordinates
             ui->lbl_status_kalman->setText(QString("X=%1 Y=%2").arg(X_Kalman).arg(Y_Kalman));
         }
@@ -365,7 +447,12 @@ void MainWindow::paint_image()
     // ----------------------------------------------------------
 
     // Plot
+#ifdef T_IMAGE_FROM_FILE
     plot(image.rows, image.cols);
+#endif // #ifdef T_IMAGE_FROM_FILE
+#ifdef T_IMAGE_FROM_CAPTURE
+    plot(live_image.rows, live_image.cols);
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
 
     if (Tracker_pt->initialised() && Do_Kalman)
     {
@@ -375,7 +462,12 @@ void MainWindow::paint_image()
     }
 
     // Draw the image
+#ifdef T_IMAGE_FROM_FILE
     ui->label_image->setPixmap(ASM::cvMatToQPixmap(image));
+#endif // #ifdef T_IMAGE_FROM_FILE
+#ifdef T_IMAGE_FROM_CAPTURE
+    ui->label_image->setPixmap(ASM::cvMatToQPixmap(live_image));
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
     //ui->label_image->setPixmap(QPixmap::fromImage(*Qimage_pt)); // tachidok
 
 }
@@ -607,8 +699,8 @@ void MainWindow::plot(const unsigned y_max, const unsigned x_max)
     ui->wdg_plot_y->yAxis->setLabel("y-position");
 
     // Set range
-    ui->wdg_plot_x->xAxis->setRange(0, Nimages);
-    ui->wdg_plot_y->xAxis->setRange(0, Nimages);
+    ui->wdg_plot_x->xAxis->setRange(0, Nimages*2);
+    ui->wdg_plot_y->xAxis->setRange(0, Nimages*2);
 
     // Get the maximum between the image width and height
     ui->wdg_plot_x->yAxis->setRange(0, x_max);
@@ -644,7 +736,7 @@ void MainWindow::initialise_kalman()
     // -------------------------------------------------------
     // Before reset set default covariances for process noise
     // and measurement noise
-    const double noise_covariance_Q = 1.0e-2; //1.0e-2
+    const double noise_covariance_Q = 1.0e-4; //1.0e-2
     const double noise_covariance_R = 2.0;    //0.5
     Kalman_filter_pt[0]->noise_covariance_Q() = noise_covariance_Q;
     Kalman_filter_pt[0]->noise_covariance_R() = noise_covariance_R;
@@ -835,3 +927,50 @@ void MainWindow::apply_kalman(const bool predict_only)
     Y_Kalman = updated_state_y.at<double>(0, 0);
 
 }
+
+#if 0
+static bool selectObject = false;
+static bool startSelection = false;
+static cv::Rect bounding_box;
+static bool paused;
+
+static void onMouse( int event, int x, int y, int, void *data)
+{
+  if( !selectObject )
+  {
+    switch ( event )
+    {
+      // Left button pushed down
+      case cv::EVENT_LBUTTONDOWN:
+        //set origin of the bounding box
+        startSelection = true;
+        boundingBox.x = x;
+        boundingBox.y = y;
+        boundingBox.width = boundingBox.height = 0;
+        break;
+      // Left button released
+      case cv::EVENT_LBUTTONUP:
+        //sei with and height of the bounding box
+        boundingBox.width = std::abs( x - boundingBox.x );
+        boundingBox.height = std::abs( y - boundingBox.y );
+        paused = false;
+        selectObject = true;
+        break;
+      case cv::EVENT_MOUSEMOVE:
+
+        if( startSelection && !selectObject )
+        {
+          //draw the bounding box
+          cv::Mat currentFrame = static_cast<cv::Mat>(*data);
+          image.copyTo( currentFrame );
+          rectangle( currentFrame, Point((int) boundingBox.x, (int)boundingBox.y ), Point( x, y ), Scalar( 255, 0, 0 ), 2, 1 );
+          imshow( "Tracking API", currentFrame );
+        }
+        break;
+    default:
+
+        break;
+    }
+  }
+}
+#endif // #if 0

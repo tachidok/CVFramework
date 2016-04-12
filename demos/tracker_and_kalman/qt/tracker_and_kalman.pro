@@ -11,8 +11,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 TARGET = tracker_and_kalman
 TEMPLATE = app
 
-# Include opencv
-INCLUDEPATH += /usr/local/include/opencv /usr/local/include/opencv2
+# Include all paths for libraries associated with opencv
+INCLUDEPATH += /usr/local/include/opencv
+
 # Link to opencv (very weird, why is kalman filter in opencv_video module?)
 #LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs\
 # -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc\
@@ -29,7 +30,12 @@ LIBS += -L/usr/local/lib -lopencv_stitching -lopencv_superres\
  -lopencv_ximgproc -lopencv_calib3d -lopencv_features2d -lopencv_flann\
  -lopencv_xobjdetect -lopencv_objdetect -lopencv_ml -lopencv_xphoto\
  -lopencv_highgui -lopencv_videoio -lopencv_imgcodecs -lopencv_photo\
- -lopencv_imgproc -lopencv_core
+ -lopencv_imgproc -lopencv_core -lX11
+
+# Include all paths for libraries associated with opencv and x11
+#INCLUDEPATH += -L/usr/local/lib 'pkg-config --cflags opencv x11'
+# Include all libraries associated with opencv and x11
+#LIBS += -L/usr/local/lib 'pkg-config --libs opencv x11'
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -39,7 +45,8 @@ SOURCES += main.cpp\
     ../../../src/tracker/ccsimpletracker.cpp \
     ../../../src/kalman/cckalmanfilter.cpp \
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.cpp \
-    ../../../src/tracker/ccopencvtracker.cpp
+    ../../../src/tracker/ccopencvtracker.cpp \
+    ../../../src/screen_capture/cccapturescreenx11.cpp
 
 HEADERS  += mainwindow.h \
     extended_label.h \
@@ -48,6 +55,7 @@ HEADERS  += mainwindow.h \
     ../../../src/tracker/ccsimpletracker.h \
     ../../../src/kalman/cckalmanfilter.h \
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.h \
-    ../../../src/tracker/ccopencvtracker.h
+    ../../../src/tracker/ccopencvtracker.h \
+    ../../../src/screen_capture/cccapturescreenx11.h
 
 FORMS    += mainwindow.ui
