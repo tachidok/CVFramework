@@ -14,13 +14,10 @@ public:
     // Empty constructor
     ~CCNormalDistTracker();
 
-    // Returns the x and y position of the window that best matches the pattern
-    const unsigned search_pattern(cv::Mat &image_pt, unsigned &x, unsigned &y,
-                                  const unsigned half_search_window_size,
-                                  double &equivalence_value);
-
-    // Updates the pattern to search for
-    void update_pattern(cv::Mat &image_pt, const unsigned x, const unsigned y);
+    // Returns the centroid of the window that best matches the pattern
+    const unsigned search_pattern(cv::Mat &image_pt,
+                                  unsigned &centroid_x,
+                                  unsigned &centroid_y);
 
     // Read-write access to minimum probability
     double &minimum_probability() {return Minimum_probability;}

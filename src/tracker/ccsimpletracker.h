@@ -14,10 +14,10 @@ public:
     // Empty constructor
     ~CCSimpleTracker();
 
-    // Returns the x and y position of the window that best matches the pattern
-    const unsigned search_pattern(cv::Mat &image_pt, unsigned &x, unsigned &y,
-                                  const unsigned half_search_window_size,
-                                  double &equivalence_value);
+    // Returns the centroid of the window that best matches the pattern
+    const unsigned search_pattern(cv::Mat &image_pt,
+                                  unsigned &centroid_x,
+                                  unsigned &centroid_y);
 
 };
 

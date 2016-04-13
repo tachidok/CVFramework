@@ -30,12 +30,16 @@ public:
 
     // Initialise the tracker. Sets the pattern to search for
     virtual const unsigned initialise(cv::Mat &image_pt,
-                                      const unsigned x, const unsigned y,
+                                      const unsigned centroid_x,
+                                      const unsigned centroid_y,
                                       const unsigned half_search_window_size,
                                       const unsigned half_pattern_size);
 
-    // Updates the pattern to search for
-    void update_pattern(cv::Mat &image_pt, const unsigned x, const unsigned y);
+    // Updates the pattern to search for based on the update method
+    void update_pattern(cv::Mat &image_pt,
+                        std::string &update_method,
+                        const unsigned centroid_x,
+                        const unsigned centroid_y);
 
     // Deletes the pattern
     void delete_pattern();
@@ -44,10 +48,10 @@ public:
     bool initialised();
 
     // Pure virtual function to be implemented by derived classes. Returns the
-    // x and y position of the window that best matches the pattern
-    virtual const unsigned search_pattern(cv::Mat &image_pt, unsigned &x, unsigned &y,
-                                          const unsigned half_search_window_size,
-                                          double &equivalence_value) = 0;
+    // centroid of the window that best matches the pattern
+    virtual const unsigned search_pattern(cv::Mat &image_pt,
+                                          unsigned &centroid_x,
+                                          unsigned &centroid_y) = 0;
 
     // Get the equivalence values
     QVector<double> get_equivalence_value() {return Equivalence_values;}
@@ -68,6 +72,15 @@ protected:
 
     // The equivalence values
     QVector<double> Equivalence_values;
+
+private:
+
+    // Updates the pattern to search for based on the distance to the
+    // centroid, gives more weight (or updates more) to the values
+    // close to the centroid
+    void update_pattern_weighted_private(cv::Mat &image_pt,
+                                         const unsigned centroid_x,
+                                         const unsigned centroid_y);
 
 };
 

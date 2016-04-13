@@ -11,18 +11,18 @@ CCSimpleTracker::CCSimpleTracker() : CATracker() { }
 CCSimpleTracker::~CCSimpleTracker() { }
 
 // ======================================================================
-// Returns the x and y position of the window that best matches the pattern
+// Returns the centroid of the window that best matches the pattern
 // ======================================================================
 const unsigned CCSimpleTracker::search_pattern(cv::Mat &image_pt,
-                                               unsigned &x, unsigned &y,
-                                               const unsigned half_search_window_size,
-                                               double &equivalence_value)
+                                               unsigned &centroid_x,
+                                               unsigned &centroid_y)
 {
 
     // Check we are inside the limits
-    if (Half_search_window_size > x || Half_search_window_size > y ||
-        Half_search_window_size*2 > image_pt.cols ||
-        Half_search_window_size*2 > image_pt.rows)
+    if (Half_search_window_size > centroid_x ||
+            Half_search_window_size > centroid_y ||
+            Half_search_window_size*2 > image_pt.cols ||
+            Half_search_window_size*2 > image_pt.rows)
     {return 1;}
 
     // We need a pattern to search before continue
@@ -33,15 +33,12 @@ const unsigned CCSimpleTracker::search_pattern(cv::Mat &image_pt,
         return 1;
     }
 
-    // Set the size for the search window
-    Half_search_window_size = half_search_window_size;
-
     // --------------------------------------------------------------------
     // Get a copy of the sub-image with size "half_search_window_size"
     // --------------------------------------------------------------------
     // Get a copy of the new pattern from the input image
-    cv::Mat sub_image(image_pt, cv::Rect(x-Half_search_window_size,
-                                         y-Half_search_window_size,
+    cv::Mat sub_image(image_pt, cv::Rect(centroid_x-Half_search_window_size,
+                                         centroid_y-Half_search_window_size,
                                          Half_search_window_size*2,
                                          Half_search_window_size*2));
 
@@ -148,7 +145,7 @@ const unsigned CCSimpleTracker::search_pattern(cv::Mat &image_pt,
         }
     }
 
-#if 0
+#if 1
     // Print the equivalence matrix
     qDebug() << "Equivalences matrix:";
     for (unsigned j= 0; j < range_h; j++)
@@ -165,24 +162,26 @@ const unsigned CCSimpleTracker::search_pattern(cv::Mat &image_pt,
 
     // Set the equivalence value to be read from external method
     Equivalence_values.resize(1);
-    Equivalence_values[0] = equivalence_value = max;
+    Equivalence_values[0] = max;
 
     qDebug() << "Equivalence value: " << Equivalence_values[0];
 
     // --------------------------------------------------------------------
     // Update the pattern
     // --------------------------------------------------------------------
-    update_pattern(image_pt, x, y);
+    //std::string update_method("copy");
+    std::string update_method("weighted");
+    update_pattern(image_pt, update_method, centroid_x, centroid_y);
 
     // --------------------------------------------------------------------
     // Return the x and y position based on the complete image
     // --------------------------------------------------------------------
-    qDebug() << "InputX: " << x << "InputY: " << y;
+    qDebug() << "InputX: " << centroid_x << "InputY: " << centroid_y;
 
-    x = x - range_w/2 + maxi;
-    y = y - range_h/2 + maxj;
+    centroid_x = centroid_x - range_w/2 + maxi;
+    centroid_y = centroid_y - range_h/2 + maxj;
 
-    qDebug() << "OutputX: " << x << "OutputY: " << y;
+    qDebug() << "OutputX: " << centroid_x << "OutputY: " << centroid_y;
 
     return 0;
 

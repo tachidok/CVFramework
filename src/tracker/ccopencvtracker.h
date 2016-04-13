@@ -23,14 +23,15 @@ public:
 
     // Sets the pattern to search for
     const unsigned initialise(cv::Mat &image_pt,
-                              const unsigned x, const unsigned y,
+                              const unsigned centroid_x,
+                              const unsigned centroid_y,
                               const unsigned half_search_window_size,
                               const unsigned half_pattern_size);
 
     // Returns the x and y position that best matches the pattern
-    const unsigned search_pattern(cv::Mat &image_pt, unsigned &x, unsigned &y,
-                                  const unsigned half_search_window_size,
-                                  double &equivalence_value);
+    const unsigned search_pattern(cv::Mat &image_pt,
+                                  unsigned &centroid_x,
+                                  unsigned &centroid_y);
 
 protected:
 

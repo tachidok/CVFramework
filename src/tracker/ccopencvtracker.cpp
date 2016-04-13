@@ -16,7 +16,8 @@ CCOpenCVTracker::~CCOpenCVTracker() { }
 // Initialise the tracker. Sets the pattern to search for
 // ======================================================================
 const unsigned CCOpenCVTracker::initialise(cv::Mat &image_pt,
-                                           const unsigned x, const unsigned y,
+                                           const unsigned centroid_x,
+                                           const unsigned centroid_y,
                                            const unsigned half_search_window_size,
                                            const unsigned half_pattern_size)
 {
@@ -25,9 +26,10 @@ const unsigned CCOpenCVTracker::initialise(cv::Mat &image_pt,
   Half_search_window_size = half_search_window_size;
 
   // Check we are inside the limits
-  if (Half_search_window_size > x || Half_search_window_size > y ||
-      static_cast<int>(Half_search_window_size)*2 > image_pt.cols ||
-      static_cast<int>(Half_search_window_size)*2 > image_pt.rows)
+  if (Half_search_window_size > centroid_x ||
+          Half_search_window_size > centroid_y ||
+          static_cast<int>(Half_search_window_size)*2 > image_pt.cols ||
+          static_cast<int>(Half_search_window_size)*2 > image_pt.rows)
   {return 1;}
 
   // Free anything within the tracker
@@ -53,8 +55,8 @@ const unsigned CCOpenCVTracker::initialise(cv::Mat &image_pt,
   delete_pattern();
 
   // Create a bounding box
-  cv::Rect bounding_box(x-Half_pattern_size,
-                        y-Half_pattern_size,
+  cv::Rect bounding_box(centroid_x-Half_pattern_size,
+                        centroid_y-Half_pattern_size,
                         Half_pattern_size*2,
                         Half_pattern_size*2);
 
@@ -80,15 +82,15 @@ const unsigned CCOpenCVTracker::initialise(cv::Mat &image_pt,
 // Returns the x and y position of the window that best matches the pattern
 // ======================================================================
 const unsigned CCOpenCVTracker::search_pattern(cv::Mat &image_pt,
-                                               unsigned &x, unsigned &y,
-                                               const unsigned half_search_window_size,
-                                               double &equivalence_value)
+                                               unsigned &centroid_x,
+                                               unsigned &centroid_y)
 {
 
     // Check we are inside the limits
-    if (Half_search_window_size > x || Half_search_window_size > y ||
-        static_cast<int>(Half_search_window_size)*2 > image_pt.cols ||
-       static_cast<int>(Half_search_window_size)*2 > image_pt.rows)
+    if (Half_search_window_size > centroid_x ||
+            Half_search_window_size > centroid_y ||
+            static_cast<int>(Half_search_window_size)*2 > image_pt.cols ||
+            static_cast<int>(Half_search_window_size)*2 > image_pt.rows)
     {return 1;}
 
     // We need a pattern to search before continue
@@ -98,9 +100,6 @@ const unsigned CCOpenCVTracker::search_pattern(cv::Mat &image_pt,
         // Return inmediately
         return 1;
     }
-
-    // Set the size for the search window
-    Half_search_window_size = half_search_window_size;
 
     // Create a bounding box to indicate where is the target
     cv::Rect2d bounding_box;
@@ -126,8 +125,8 @@ const unsigned CCOpenCVTracker::search_pattern(cv::Mat &image_pt,
     // --------------------------------------------------------------------
     //qDebug() << "InputX: " << x << "InputY: " << y;
 
-    x = bounding_box.x + bounding_box.width/2.0;
-    y = bounding_box.y + bounding_box.height/2.0;
+    centroid_x = bounding_box.x + bounding_box.width/2.0;
+    centroid_y = bounding_box.y + bounding_box.height/2.0;
 
     //qDebug() << "OutputX: " << x << "OutputY: " << y;
 

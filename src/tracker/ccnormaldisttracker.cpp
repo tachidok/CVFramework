@@ -13,17 +13,17 @@ CCNormalDistTracker::CCNormalDistTracker()
 CCNormalDistTracker::~CCNormalDistTracker() { }
 
 // ======================================================================
-// Returns the x and y position of the window that best matches the pattern
+// Returns the centroid of the window that best matches the pattern
 // ======================================================================
 const unsigned CCNormalDistTracker::search_pattern(cv::Mat &image_pt,
-                                                   unsigned &x, unsigned &y,
-                                                   const unsigned half_search_window_size,
-                                                   double &equivalence_value)
+                                                   unsigned &centroid_x,
+                                                   unsigned &centroid_y)
 {
     // Check we are inside the limits
-    if (Half_search_window_size > x || Half_search_window_size > y ||
-        Half_search_window_size*2 > image_pt.cols ||
-        Half_search_window_size*2 > image_pt.rows)
+    if (Half_search_window_size > centroid_x ||
+            Half_search_window_size > centroid_y ||
+            Half_search_window_size*2 > image_pt.cols ||
+            Half_search_window_size*2 > image_pt.rows)
     {return 1;}
 
     // We need a pattern to search before continue
@@ -34,15 +34,12 @@ const unsigned CCNormalDistTracker::search_pattern(cv::Mat &image_pt,
         return 1;
     }
 
-    // Set the size for the search window
-    Half_search_window_size = half_search_window_size;
-
     // --------------------------------------------------------------------
     // Get a copy of the sub-image with size "half_search_window_size"
     // --------------------------------------------------------------------
     // Get a copy of the new pattern from the input image
-    cv::Mat sub_image(image_pt, cv::Rect(x-Half_search_window_size,
-                                         y-Half_search_window_size,
+    cv::Mat sub_image(image_pt, cv::Rect(centroid_x-Half_search_window_size,
+                                         centroid_y-Half_search_window_size,
                                          Half_search_window_size*2,
                                          Half_search_window_size*2));
 
@@ -225,97 +222,27 @@ const unsigned CCNormalDistTracker::search_pattern(cv::Mat &image_pt,
 
     // Set the equivalence value to be read from external method
     Equivalence_values.resize(1);
-    Equivalence_values[0] = equivalence_value = max;
+    Equivalence_values[0] = max;
 
     qDebug() << "Equivalence value: " << Equivalence_values[0];
 
     // --------------------------------------------------------------------
     // Update the pattern
     // --------------------------------------------------------------------
-    update_pattern(image_pt, x, y);
+    //std::string update_method("copy");
+    std::string update_method("weighted");
+    update_pattern(image_pt, update_method, centroid_x, centroid_y);
 
-    qDebug() << "InputX: " << x << "InputY: " << y;
+    qDebug() << "InputX: " << centroid_x << "InputY: " << centroid_y;
 
     // --------------------------------------------------------------------
     // Return the x and y position based on the complete image
     // --------------------------------------------------------------------
-    x = x - range_w/2 + maxi;
-    y = y - range_h/2 + maxj;
+    centroid_x = centroid_x - range_w/2 + maxi;
+    centroid_y = centroid_y - range_h/2 + maxj;
 
-    qDebug() << "OutputX: " << x << "OutputY: " << y;
+    qDebug() << "OutputX: " << centroid_x << "OutputY: " << centroid_y;
 
     return 0;
-
-}
-
-// ======================================================================
-// Updates the pattern to search for
-// ======================================================================
-void CCNormalDistTracker::update_pattern(cv::Mat &image_pt,
-                                         const unsigned x, const unsigned y)
-{
-    // Check we are inside the limits
-    if (Half_search_window_size > x || Half_search_window_size > y ||
-        Half_search_window_size*2 > image_pt.cols ||
-        Half_search_window_size*2 > image_pt.rows)
-    {return;}
-
-    // Backup the previous pattern
-    cv::Mat previous_pattern = Pattern_pt->clone();
-
-    // Delete the previous pattern
-    delete_pattern();
-
-    // Get a copy of the new pattern from the input image
-    Pattern_pt = new cv::Mat(image_pt, cv::Rect(x-Half_pattern_size,
-                                                y-Half_pattern_size,
-                                                Half_pattern_size*2,
-                                                Half_pattern_size*2));
-
-    // Change to gray-scale
-    cv::cvtColor(*Pattern_pt, *Pattern_pt, CV_BGR2GRAY);
-
-    // Get the number of channels of the pattern
-    const unsigned n_channels_pattern = Pattern_pt->channels();
-
-    // Get the size of the smallest pattern to loop around
-    const unsigned size_h =
-            std::min(previous_pattern.rows, Pattern_pt->rows);
-    const unsigned size_w =
-            std::min(previous_pattern.cols, Pattern_pt->cols);
-
-    // Maximum distance to centre
-    const double max_dist =
-            sqrt(((size_h/2.0) * (size_h/2.0)) + ((size_w/2.0) * (size_w/2.0)));
-
-    // Update the pattern giving more weight to the pixels in the center of
-    // the Pattern window
-    for (unsigned i = 0; i < size_h; i++)
-    {
-        // Get a pointer to the i-row in the previous_pattern
-        unsigned char *previous_pattern_row_pt = previous_pattern.ptr<uchar>(i);
-        // Get a pointer to the jp-row in the pattern
-        unsigned char *pattern_row_pt = Pattern_pt->ptr<uchar>(i);
-        for (unsigned j = 0; j < size_w; j++)
-        {
-            // Get the distance to the centre
-            const double distance =
-                    sqrt(((size_h/2.0) - i) * ((size_h/2.0) - i) + ((size_w/2.0) - j) * ((size_w/2.0) - j));
-            // Get the weight
-            const double weight = 1.0 - (distance * 1.0/max_dist);
-
-            // Extract a pixel from the previous pattern
-            const unsigned pixel_previous_pattern =
-                    previous_pattern_row_pt[(j * n_channels_pattern) + 0];
-            // Extract a pixel from the pattern
-            const unsigned pixel_pattern =
-                    pattern_row_pt[(j * n_channels_pattern) + 0];
-            // Get the new value of the pixel
-            //const unsigned new_gray_value_pixel = ((pixel_pattern * weight) + pixel_previous_pattern)/2.0;
-            //const unsigned new_gray_value_pixel = ((pixel_pattern + pixel_previous_pattern)/2.0) * weight;
-            const unsigned new_gray_value_pixel = pixel_pattern * weight + pixel_previous_pattern * (1.0-weight);
-            pattern_row_pt[(j * n_channels_pattern) + 0] = new_gray_value_pixel;
-        }
-    }
 
 }

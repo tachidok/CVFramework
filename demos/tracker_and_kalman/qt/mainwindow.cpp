@@ -121,9 +121,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Maximum and minimum aim size
     Max_aim_size = 21;
-    Min_aim_size = 7;
+    Min_aim_size = 15;
     // Initial aim size
-    Aim_size = 21;
+    Aim_size = 15;
     // Increment step for aim size
     Aim_size_increasing_step = 2;
 
@@ -331,8 +331,8 @@ void MainWindow::paint_image()
         }
 
         // Disable some buttons
-        ui->btn_decrease_search_window->setDisabled(true);
-        ui->btn_increase_search_window->setDisabled(true);
+        //ui->btn_decrease_search_window->setDisabled(true);
+        //ui->btn_increase_search_window->setDisabled(true);
 
         Left_mouse_button_pressed = false;
 
@@ -354,12 +354,10 @@ void MainWindow::paint_image()
         draw_square(&live_image, X_tracker, Y_tracker, Aim_size*2, 255, 255, 0, 2);
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
 #ifdef T_IMAGE_FROM_FILE
-        if (Tracker_pt->search_pattern(file_image, X_tracker, Y_tracker,
-                                       Aim_size*2, equivalence_value))
+        if (Tracker_pt->search_pattern(file_image, X_tracker, Y_tracker))
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
-        if (Tracker_pt->search_pattern(live_image, X_tracker, Y_tracker,
-                                       Aim_size*2, equivalence_value))
+        if (Tracker_pt->search_pattern(live_image, X_tracker, Y_tracker))
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
         {
             Found_pattern = false;
@@ -423,9 +421,9 @@ void MainWindow::paint_image()
         // Show me the patter you are looking for
         cv::namedWindow("Pattern");
         cv::Mat output_pattern;
-        cv::resize(*(Tracker_pt->pattern_pt()), output_pattern, cv::Size(80, 60));
+        cv::resize(*(Tracker_pt->pattern_pt()), output_pattern, cv::Size(160, 120));
         cv::imshow("Pattern", output_pattern);
-        //ui->lbl_image_search->setPixmap(ASM::cvMatToQPixmap(*(Tracker_pt->pattern_pt())));
+        ui->lbl_image_search->setPixmap(ASM::cvMatToQPixmap(*(Tracker_pt->pattern_pt())));
         //ui->lbl_image_search->setPixmap(QPixmap::fromImage(*(Tracker_pt->pattern_pt()))); // tachidok
 
         if (Do_Kalman)
