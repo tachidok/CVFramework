@@ -221,7 +221,7 @@ MainWindow::~MainWindow()
 // Draws an image in the "label" object of the ui
 void MainWindow::paint_image()
 {
-#ifdef T_IMAGE_FROM_CAPTURE
+//#ifdef T_IMAGE_FROM_CAPTURE
     //QPixmap pixmap(QPixmap::grabWindow(QWidget::winId(),0,0,400,320));
     //QPixmap pixmap(QPixmap::grabWindow(QApplication::desktop()->winId(),
     //                                   500, 500, QApplication::desktop()->width(), QApplication::desktop()->height()));
@@ -243,12 +243,12 @@ void MainWindow::paint_image()
 
     // Resize the input image and output it in the same image
     //cv::resize(live_image, live_image, cv::Size(640, 480));
-    //cv::namedWindow("Live-video");
-    //cv::imshow("Live-video", live_image);
+    cv::namedWindow("Live-video");
+    cv::imshow("Live-video", live_image);
 
     //ui->lbl_global_status->setText("<font color='red'>ERROR: Getting image</font>");
     //return;
-#endif // #ifdef T_IMAGE_FROM_CAPTURE
+//#endif // #ifdef T_IMAGE_FROM_CAPTURE
 
 #ifdef T_IMAGE_FROM_FILE
     // ----------------------------------------------------------
@@ -288,7 +288,7 @@ void MainWindow::paint_image()
     // Load the image into the image object (we do not use a pointer
     // since this is the only place where we use the image)
 
-    cv::Mat image = cv::imread(full_image_name.toStdString());
+    cv::Mat file_image = cv::imread(full_image_name.toStdString());
 
     // Qimage_pt->load(full_image_name);
     // Increment the image index
@@ -307,10 +307,10 @@ void MainWindow::paint_image()
         X_tracker = X_mouse;
         Y_tracker = Y_mouse;
 #ifdef T_IMAGE_FROM_FILE
-        if ((Tracker_pt->initialise(image, X_tracker, Y_tracker, Aim_size)))
+        if ((Tracker_pt->initialise(file_image, X_tracker, Y_tracker, Aim_size*2, Aim_size)))
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
-        if ((Tracker_pt->initialise(live_image, X_tracker, Y_tracker, Aim_size)))
+        if ((Tracker_pt->initialise(live_image, X_tracker, Y_tracker, Aim_size*2, Aim_size)))
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
         {
             ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker was not initialised correctly</font>");
@@ -348,13 +348,13 @@ void MainWindow::paint_image()
         // Draw search window (If we draw the search window here we can see
         // the position selected by the Tracker inside the search window)
 #ifdef T_IMAGE_FROM_FILE
-        draw_square(&image, X_tracker, Y_tracker, Aim_size*3, 255, 255, 0, 2);
+        draw_square(&file_image, X_tracker, Y_tracker, Aim_size*2, 255, 255, 0, 2);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
-        draw_square(&live_image, X_tracker, Y_tracker, Aim_size*3, 255, 255, 0, 2);
+        draw_square(&live_image, X_tracker, Y_tracker, Aim_size*2, 255, 255, 0, 2);
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
 #ifdef T_IMAGE_FROM_FILE
-        if (Tracker_pt->search_pattern(image, X_tracker, Y_tracker,
+        if (Tracker_pt->search_pattern(file_image, X_tracker, Y_tracker,
                                        Aim_size*2, equivalence_value))
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
@@ -390,13 +390,13 @@ void MainWindow::paint_image()
     //qDebug() << X << Y;
     // Green aim for mouse
 #ifdef T_IMAGE_FROM_FILE
-    draw_aim(&image, X_mouse, Y_mouse, Aim_size/2, 0, 255, 0);
+    draw_aim(&file_image, X_mouse, Y_mouse, Aim_size/2, 0, 255, 0);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
     draw_aim(&live_image, X_mouse, Y_mouse, Aim_size/2, 0, 255, 0);
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
 #ifdef T_IMAGE_FROM_FILE
-    draw_square(&image, X_mouse, Y_mouse, Aim_size, 0, 255, 0);
+    draw_square(&file_image, X_mouse, Y_mouse, Aim_size, 0, 255, 0);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
     draw_square(&live_image, X_mouse, Y_mouse, Aim_size, 0, 255, 0);
@@ -412,26 +412,28 @@ void MainWindow::paint_image()
         {
             // Draw an square based on the tracking coordinates (red for tracker)
 #ifdef T_IMAGE_FROM_FILE
-            draw_square(&image, X_tracker, Y_tracker, Aim_size, 255, 0, 0);
+            draw_square(&file_image, X_tracker, Y_tracker, Aim_size, 255, 0, 0);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
             draw_square(&live_image, X_tracker, Y_tracker, Aim_size, 255, 0, 0);
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
             ui->lbl_status_tracker->setText(QString("X=%1 Y=%2 EV=%3").arg(X_tracker).arg(Y_tracker).arg(equivalence_value));
-            //cv::namedWindow("Pattern");
-            //cv::Mat output_pattern;
-            //cv::resize(*(Tracker_pt->pattern_pt()), output_pattern, cv::Size(80, 60));
-            //cv::imshow("Pattern", output_pattern);
-            ui->lbl_image_search->setPixmap(ASM::cvMatToQPixmap(*(Tracker_pt->pattern_pt())));
-            //ui->lbl_image_search->setPixmap(QPixmap::fromImage(*(Tracker_pt->pattern_pt()))); // tachidok
         }
+
+        // Show me the patter you are looking for
+        cv::namedWindow("Pattern");
+        cv::Mat output_pattern;
+        cv::resize(*(Tracker_pt->pattern_pt()), output_pattern, cv::Size(80, 60));
+        cv::imshow("Pattern", output_pattern);
+        //ui->lbl_image_search->setPixmap(ASM::cvMatToQPixmap(*(Tracker_pt->pattern_pt())));
+        //ui->lbl_image_search->setPixmap(QPixmap::fromImage(*(Tracker_pt->pattern_pt()))); // tachidok
 
         if (Do_Kalman)
         {
-            // Draw an square based on the predicted Kalman coordinates
+            // Draw an square based on the corrected Kalman coordinates
             // (blue for Kalman)
 #ifdef T_IMAGE_FROM_FILE
-            draw_square(&image, X_Kalman, Y_Kalman, Aim_size, 0, 0, 255);
+            draw_square(&file_image, X_Kalman, Y_Kalman, Aim_size, 0, 0, 255);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
             draw_square(&live_image, X_Kalman, Y_Kalman, Aim_size, 0, 0, 255);
@@ -448,7 +450,7 @@ void MainWindow::paint_image()
 
     // Plot
 #ifdef T_IMAGE_FROM_FILE
-    plot(image.rows, image.cols);
+    plot(file_image.rows, file_image.cols);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
     plot(live_image.rows, live_image.cols);
@@ -463,7 +465,7 @@ void MainWindow::paint_image()
 
     // Draw the image
 #ifdef T_IMAGE_FROM_FILE
-    ui->label_image->setPixmap(ASM::cvMatToQPixmap(image));
+    ui->label_image->setPixmap(ASM::cvMatToQPixmap(file_image));
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
     ui->label_image->setPixmap(ASM::cvMatToQPixmap(live_image));
@@ -737,7 +739,7 @@ void MainWindow::initialise_kalman()
     // Before reset set default covariances for process noise
     // and measurement noise
     const double noise_covariance_Q = 1.0e-4; //1.0e-2
-    const double noise_covariance_R = 2.0;    //0.5
+    const double noise_covariance_R = 1.0;    //0.5
     Kalman_filter_pt[0]->noise_covariance_Q() = noise_covariance_Q;
     Kalman_filter_pt[0]->noise_covariance_R() = noise_covariance_R;
     // Reset

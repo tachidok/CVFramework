@@ -31,6 +31,7 @@ public:
     // Initialise the tracker. Sets the pattern to search for
     virtual const unsigned initialise(cv::Mat &image_pt,
                                       const unsigned x, const unsigned y,
+                                      const unsigned half_search_window_size,
                                       const unsigned half_pattern_size);
 
     // Updates the pattern to search for

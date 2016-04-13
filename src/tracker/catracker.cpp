@@ -26,6 +26,7 @@ CATracker::~CATracker() { }
 // ======================================================================
 const unsigned CATracker::initialise(cv::Mat &image_pt,
                                      const unsigned x, const unsigned y,
+                                     const unsigned half_search_window_size,
                                      const unsigned half_pattern_size)
 {
   // Check we are inside the limits
@@ -61,7 +62,7 @@ void CATracker::update_pattern(cv::Mat &image_pt, const unsigned x,
 {
 
     // Updates the pattern (Get a sub-image based on the coordinates)
-    initialise(image_pt, x, y, Half_pattern_size);
+    initialise(image_pt, x, y, Half_search_window_size, Half_pattern_size);
 
 }
 

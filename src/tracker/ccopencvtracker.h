@@ -24,6 +24,7 @@ public:
     // Sets the pattern to search for
     const unsigned initialise(cv::Mat &image_pt,
                               const unsigned x, const unsigned y,
+                              const unsigned half_search_window_size,
                               const unsigned half_pattern_size);
 
     // Returns the x and y position that best matches the pattern

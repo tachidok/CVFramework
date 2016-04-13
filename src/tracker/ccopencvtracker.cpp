@@ -17,8 +17,13 @@ CCOpenCVTracker::~CCOpenCVTracker() { }
 // ======================================================================
 const unsigned CCOpenCVTracker::initialise(cv::Mat &image_pt,
                                            const unsigned x, const unsigned y,
+                                           const unsigned half_search_window_size,
                                            const unsigned half_pattern_size)
 {
+
+  // Initialise search window
+  Half_search_window_size = half_search_window_size;
+
   // Check we are inside the limits
   if (Half_search_window_size > x || Half_search_window_size > y ||
       static_cast<int>(Half_search_window_size)*2 > image_pt.cols ||
