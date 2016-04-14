@@ -15,9 +15,9 @@ public:
     ~CCNormalDistTracker();
 
     // Returns the centroid of the window that best matches the pattern
-    const unsigned search_pattern(cv::Mat &image_pt,
-                                  unsigned &centroid_x,
-                                  unsigned &centroid_y);
+    bool search_pattern(cv::Mat &image_pt,
+                        unsigned &centroid_x,
+                        unsigned &centroid_y);
 
     // Read-write access to minimum probability
     double &minimum_probability() {return Minimum_probability;}

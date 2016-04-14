@@ -13,24 +13,24 @@ CCSimpleTracker::~CCSimpleTracker() { }
 // ======================================================================
 // Returns the centroid of the window that best matches the pattern
 // ======================================================================
-const unsigned CCSimpleTracker::search_pattern(cv::Mat &image_pt,
-                                               unsigned &centroid_x,
-                                               unsigned &centroid_y)
+bool CCSimpleTracker::search_pattern(cv::Mat &image_pt,
+                                     unsigned &centroid_x,
+                                     unsigned &centroid_y)
 {
 
     // Check we are inside the limits
-    if (Half_search_window_size > centroid_x ||
-            Half_search_window_size > centroid_y ||
-            Half_search_window_size*2 > image_pt.cols ||
-            Half_search_window_size*2 > image_pt.rows)
-    {return 1;}
+    if (!validate_input_centroid(centroid_x, centroid_y,
+                                 image_pt.cols, image_pt.rows))
+    {
+        return false;
+    }
 
     // We need a pattern to search before continue
     // Is there a pattern already set
     if (Pattern_pt == 0)
     {
         // Return inmediately
-        return 1;
+        return false;
     }
 
     // --------------------------------------------------------------------
@@ -145,7 +145,7 @@ const unsigned CCSimpleTracker::search_pattern(cv::Mat &image_pt,
         }
     }
 
-#if 1
+#if 0
     // Print the equivalence matrix
     qDebug() << "Equivalences matrix:";
     for (unsigned j= 0; j < range_h; j++)
@@ -183,6 +183,6 @@ const unsigned CCSimpleTracker::search_pattern(cv::Mat &image_pt,
 
     qDebug() << "OutputX: " << centroid_x << "OutputY: " << centroid_y;
 
-    return 0;
+    return true;
 
 }

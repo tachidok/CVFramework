@@ -151,6 +151,10 @@ protected:
     // Found patern
     bool Found_pattern;
 
+    // How to characterise that the tracker lost the target
+    // Difference in the previous position and the new one
+    unsigned Max_allowed_difference;
+
     // ======================================================================
     // Kalman stuff
     // ======================================================================
@@ -170,25 +174,29 @@ protected:
     // Kalman Filter objects, x and y independently
     CCKalmanFilter **Kalman_filter_pt;
 
+#if 0
     // Initialise Kalman with all its data
     void initialise_kalman();
 
     // Apply Kalman
     void apply_kalman(const bool predict_only);
+#endif // #if 0
 
     // ======================================================================
     // Aim stuff
     // ======================================================================
 
-    // Aim size (this has to be an odd number)
-    unsigned Aim_size;
-    // Aim size increasing step
-    unsigned Aim_size_increasing_step;
+    // Search window size
+    unsigned Pattern_window_size;
+    // Search window size
+    unsigned Search_window_size;
+    // Pattern size window increasing step
+    unsigned Pattern_window_size_increasing_step;
 
-    // Max aim size
-    unsigned Max_aim_size;
-    // Min aim size
-    unsigned Min_aim_size;
+    // Max pattern window size
+    unsigned Max_pattern_window_size;
+    // Min pattern window size
+    unsigned Min_pattern_window_size;
 
     // Method to draw an aim
     void draw_aim(cv::Mat *image_pt, const unsigned x, const unsigned y,

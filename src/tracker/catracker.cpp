@@ -24,24 +24,23 @@ CATracker::~CATracker() { }
 // ======================================================================
 // Initialise the tracker. Sets the pattern to search for
 // ======================================================================
-const unsigned CATracker::initialise(cv::Mat &image_pt,
-                                     const unsigned centroid_x,
-                                     const unsigned centroid_y,
-                                     const unsigned half_search_window_size,
-                                     const unsigned half_pattern_size)
+bool CATracker::initialise(cv::Mat &image_pt,
+                           const unsigned centroid_x,
+                           const unsigned centroid_y,
+                           const unsigned half_search_window_size,
+                           const unsigned half_pattern_size)
 {
   // Initialise search window
   Half_search_window_size = half_search_window_size;
 
-  // Check we are inside the limits
-  if (Half_search_window_size > centroid_x ||
-          Half_search_window_size > centroid_y ||
-          Half_search_window_size*2 > image_pt.cols ||
-          Half_search_window_size*2 > image_pt.rows)
-  {return 1;}
-
   // Set the patter size
   Half_pattern_size = half_pattern_size;
+
+  if (!validate_input_centroid(centroid_x, centroid_y,
+                               image_pt.cols, image_pt.rows))
+  {
+      return false;
+  }
 
   // Delete the previous pattern
   delete_pattern();
@@ -55,7 +54,7 @@ const unsigned CATracker::initialise(cv::Mat &image_pt,
   // Change to gray-scale
   cv::cvtColor(*Pattern_pt, *Pattern_pt, CV_BGR2GRAY);
 
-  return 0;
+  return true;
 
 }
 
@@ -103,13 +102,6 @@ void CATracker::update_pattern_weighted_private(cv::Mat &image_pt,
                                                 const unsigned centroid_x,
                                                 const unsigned centroid_y)
 {
-    // Check we are inside the limits
-    if (Half_search_window_size > centroid_x ||
-            Half_search_window_size > centroid_y ||
-            Half_search_window_size*2 > image_pt.cols ||
-            Half_search_window_size*2 > image_pt.rows)
-    {return;}
-
     // Backup the previous pattern
     cv::Mat previous_pattern = Pattern_pt->clone();
 
@@ -196,5 +188,36 @@ bool CATracker::initialised()
     }
 
     return false;
+
+}
+
+bool CATracker::validate_input_centroid(unsigned centroid_x,
+                                        unsigned centroid_y,
+                                        const unsigned image_widht,
+                                        const unsigned image_height)
+{
+
+    // The search window size must have been set at this point
+    if (Half_search_window_size == 0)
+    {
+        return false;
+    }
+
+    // The pattern window size must have been set at this point
+    if (Half_pattern_size == 0)
+    {
+        return false;
+    }
+
+    // Check we are inside the limits
+    if (Half_search_window_size > centroid_x ||
+            Half_search_window_size > centroid_y ||
+            centroid_x + Half_search_window_size > image_widht ||
+            centroid_y + Half_search_window_size > image_height)
+    {
+        return false;
+    }
+
+    return true;
 
 }

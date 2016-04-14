@@ -256,6 +256,32 @@
      <string>Current status:</string>
     </property>
    </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>452</x>
+      <y>610</y>
+      <width>313</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="lbl_lbl_kalman_velocities">
+       <property name="text">
+        <string>Kalman velocities:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="lbl_status_kalman_velocities">
+       <property name="text">
+        <string>Status_Kalman Velocities</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
    <zorder>layoutWidget</zorder>
    <zorder>layoutWidget</zorder>
    <zorder>layoutWidget</zorder>
@@ -268,6 +294,8 @@
    <zorder>wdg_plot_y</zorder>
    <zorder>lbl_global_status</zorder>
    <zorder>lbl_global_status_lbl</zorder>
+   <zorder>lbl_lbl_kalman_velocities</zorder>
+   <zorder>lbl_status_kalman_velocities</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

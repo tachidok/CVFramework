@@ -29,11 +29,11 @@ public:
     virtual ~CATracker();
 
     // Initialise the tracker. Sets the pattern to search for
-    virtual const unsigned initialise(cv::Mat &image_pt,
-                                      const unsigned centroid_x,
-                                      const unsigned centroid_y,
-                                      const unsigned half_search_window_size,
-                                      const unsigned half_pattern_size);
+    virtual bool initialise(cv::Mat &image_pt,
+                            const unsigned centroid_x,
+                            const unsigned centroid_y,
+                            const unsigned half_search_window_size,
+                            const unsigned half_pattern_size);
 
     // Updates the pattern to search for based on the update method
     void update_pattern(cv::Mat &image_pt,
@@ -49,9 +49,9 @@ public:
 
     // Pure virtual function to be implemented by derived classes. Returns the
     // centroid of the window that best matches the pattern
-    virtual const unsigned search_pattern(cv::Mat &image_pt,
-                                          unsigned &centroid_x,
-                                          unsigned &centroid_y) = 0;
+    virtual bool search_pattern(cv::Mat &image_pt,
+                                unsigned &centroid_x,
+                                unsigned &centroid_y) = 0;
 
     // Get the equivalence values
     QVector<double> get_equivalence_value() {return Equivalence_values;}
@@ -60,6 +60,12 @@ public:
     cv::Mat *pattern_pt() {return Pattern_pt;}
 
 protected:
+
+    // Check that input centroid is valid
+    bool validate_input_centroid(unsigned centroid_x,
+                                 unsigned centroid_y,
+                                 const unsigned image_widht,
+                                 const unsigned image_height);
 
     // Store the pattern
     cv::Mat *Pattern_pt;

@@ -119,13 +119,19 @@ MainWindow::MainWindow(QWidget *parent) :
     // By defaul the left mouse button is not pressed
     Left_mouse_button_pressed = false;
 
-    // Maximum and minimum aim size
-    Max_aim_size = 21;
-    Min_aim_size = 15;
-    // Initial aim size
-    Aim_size = 15;
-    // Increment step for aim size
-    Aim_size_increasing_step = 2;
+    // Maximum and minimum pattern size
+    Max_pattern_window_size = 33;
+    Min_pattern_window_size = 7;
+    // Initial pattern window size
+    Pattern_window_size = 17;
+    // Increment step for pattern window size
+    Pattern_window_size_increasing_step = 2;
+    // Search window is based on the pattern window size
+    Search_window_size = Pattern_window_size*2;
+
+    // Characterise a lost in the tracker
+    // Difference in pixels (jump by the target position)
+    Max_allowed_difference = 10;
 
     // ======================================================================
     // Kalman stuff
@@ -228,8 +234,8 @@ void MainWindow::paint_image()
     //QPixmap pixmap(QPixmap::grabWindow(QWidget::winId()));
 
     // Capture the right-upper region of the desktop
-    int width_capture = 640;
-    int height_capture = 480;
+    int width_capture = 640;//160;//640;
+    int height_capture = 480;//120;//480;
     int desktop_width = QApplication::desktop()->width();
     int desktop_height = QApplication::desktop()->height();
     QPixmap pixmap(QPixmap::grabWindow(QApplication::desktop()->winId(),
@@ -307,17 +313,17 @@ void MainWindow::paint_image()
         X_tracker = X_mouse;
         Y_tracker = Y_mouse;
 #ifdef T_IMAGE_FROM_FILE
-        if ((Tracker_pt->initialise(file_image, X_tracker, Y_tracker, Aim_size*2, Aim_size)))
+        if ((Tracker_pt->initialise(file_image, X_tracker, Y_tracker, Search_window_size, Pattern_window_size)))
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
-        if ((Tracker_pt->initialise(live_image, X_tracker, Y_tracker, Aim_size*2, Aim_size)))
+        if ((Tracker_pt->initialise(live_image, X_tracker, Y_tracker, Search_window_size, Pattern_window_size)))
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
         {
-            ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker was not initialised correctly</font>");
+            ui->lbl_global_status->setText("<font color='green'>OK: Tracker initialised correctly</font>");
         }
         else
         {
-            ui->lbl_global_status->setText("<font color='green'>OK: Tracker initialised correctly</font>");
+            ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker was not initialised correctly</font>");
         }
 
         Do_Kalman = true;
@@ -326,7 +332,26 @@ void MainWindow::paint_image()
             // -------------------------------------------------------
             // Initialise Kalmans since this is a new set of data
             // -------------------------------------------------------
-            initialise_kalman();
+            const double noise_covariance_q = 1.0e-2; //1.0e-2
+            const double noise_covariance_r = 0.5;    //0.5
+
+            // Kalman X
+            // Initial state vector for Kalman X
+            Kalman_filter_pt[0]->x(0) = X_mouse; // x-position
+            Kalman_filter_pt[0]->x(1) = 0.0; // x-pixels per frame (velocity)
+            const double dt = 1.0;
+            Kalman_filter_pt[0]->initialise(dt,
+                                            noise_covariance_q,
+                                            noise_covariance_r);
+
+
+            // Kalman Y
+            // Initial state vector for Kalman X
+            Kalman_filter_pt[1]->x(0) = Y_mouse; // y-position
+            Kalman_filter_pt[1]->x(1) = 0.0; // y-pixels per frame (velocity)
+            Kalman_filter_pt[1]->initialise(dt,
+                                            noise_covariance_q,
+                                            noise_covariance_r);
 
         }
 
@@ -345,13 +370,16 @@ void MainWindow::paint_image()
     // Do tracking? Only if there is a pattern to search for ...
     if (Tracker_pt->initialised())
     {
+        // Backup the old positions
+        const int old_x_tracker = X_tracker;
+        const int old_y_tracker = Y_tracker;
         // Draw search window (If we draw the search window here we can see
         // the position selected by the Tracker inside the search window)
 #ifdef T_IMAGE_FROM_FILE
-        draw_square(&file_image, X_tracker, Y_tracker, Aim_size*2, 255, 255, 0, 2);
+        draw_square(&file_image, X_tracker, Y_tracker, Search_window_size, 255, 255, 0, 2);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
-        draw_square(&live_image, X_tracker, Y_tracker, Aim_size*2, 255, 255, 0, 2);
+        draw_square(&live_image, X_tracker, Y_tracker, Search_window_size, 255, 255, 0, 2);
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
 #ifdef T_IMAGE_FROM_FILE
         if (Tracker_pt->search_pattern(file_image, X_tracker, Y_tracker))
@@ -360,19 +388,71 @@ void MainWindow::paint_image()
         if (Tracker_pt->search_pattern(live_image, X_tracker, Y_tracker))
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
         {
-            Found_pattern = false;
-            ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker did not found the pattern</font>");
+            if (std::abs(old_x_tracker - static_cast<int>(X_tracker)) > Max_allowed_difference ||
+                    std::abs(old_y_tracker - static_cast<int>(Y_tracker)) > Max_allowed_difference)
+            {
+                //qDebug() << "DifferencesX:" << std::abs(old_x_tracker - static_cast<int>(X_tracker));
+                //qDebug() << "DifferencesX:" << std::abs(old_y_tracker - static_cast<int>(Y_tracker));
+                Found_pattern = false;
+                ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker did not found the pattern</font>");
+            }
+            else
+            {
+                Found_pattern = true;
+                ui->lbl_global_status->setText("<font color='green'>OK: Tracker found the pattern</font>");
+            }
         }
         else
         {
-            Found_pattern = true;
-            ui->lbl_global_status->setText("<font color='green'>OK: Tracker found the pattern</font>");
+            Found_pattern = false;
+            ui->lbl_global_status->setText("<font color='red'>ERROR: Tracker did not found the pattern</font>");
         }
 
         // Apply Kalman
         if (Do_Kalman)
         {
-            apply_kalman(!Found_pattern);
+            // -------------------------------------------------
+            // Kalman X
+            // -------------------------------------------------
+            // Set measurement
+            Kalman_filter_pt[0]->z(0) = X_tracker;
+            //Kalman_filter_pt[0]->z(0) = X_mouse;
+
+            // The dt (one frame per time)
+            const double dt = 1.0;
+            Kalman_filter_pt[0]->apply(dt, !Found_pattern);
+            // Set variables for ploting and output
+            if (Found_pattern)
+            {
+                // Take it from updated
+                X_Kalman = Kalman_filter_pt[0]->x_updated(0);
+            }
+            else
+            {
+                // Take it from predicted
+                X_Kalman = Kalman_filter_pt[0]->x_predicted(0);
+            }
+
+            // -------------------------------------------------
+            // Kalman Y
+            // -------------------------------------------------
+            // Set measurement
+            Kalman_filter_pt[1]->z(0) = Y_tracker;
+            //Kalman_filter_pt[1]->z(0) = Y_mouse;
+
+            Kalman_filter_pt[1]->apply(dt, !Found_pattern);
+            // Set variables for ploting and output
+            if (Found_pattern)
+            {
+                // Take it from updated
+                Y_Kalman = Kalman_filter_pt[1]->x_updated(0);
+            }
+            else
+            {
+                // Take it from predicted
+                Y_Kalman = Kalman_filter_pt[1]->x_predicted(0);
+            }
+
         }
 
     }
@@ -388,16 +468,16 @@ void MainWindow::paint_image()
     //qDebug() << X << Y;
     // Green aim for mouse
 #ifdef T_IMAGE_FROM_FILE
-    draw_aim(&file_image, X_mouse, Y_mouse, Aim_size/2, 0, 255, 0);
+    draw_aim(&file_image, X_mouse, Y_mouse, Pattern_window_size/2, 0, 255, 0);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
-    draw_aim(&live_image, X_mouse, Y_mouse, Aim_size/2, 0, 255, 0);
+    draw_aim(&live_image, X_mouse, Y_mouse, Pattern_window_size/2, 0, 255, 0);
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
 #ifdef T_IMAGE_FROM_FILE
-    draw_square(&file_image, X_mouse, Y_mouse, Aim_size, 0, 255, 0);
+    draw_square(&file_image, X_mouse, Y_mouse, Pattern_window_size, 0, 255, 0);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
-    draw_square(&live_image, X_mouse, Y_mouse, Aim_size, 0, 255, 0);
+    draw_square(&live_image, X_mouse, Y_mouse, Pattern_window_size, 0, 255, 0);
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
 
     //qDebug() << X << Y;
@@ -410,10 +490,10 @@ void MainWindow::paint_image()
         {
             // Draw an square based on the tracking coordinates (red for tracker)
 #ifdef T_IMAGE_FROM_FILE
-            draw_square(&file_image, X_tracker, Y_tracker, Aim_size, 255, 0, 0);
+            draw_square(&file_image, X_tracker, Y_tracker, Pattern_window_size, 255, 0, 0);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
-            draw_square(&live_image, X_tracker, Y_tracker, Aim_size, 255, 0, 0);
+            draw_square(&live_image, X_tracker, Y_tracker, Pattern_window_size, 255, 0, 0);
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
             ui->lbl_status_tracker->setText(QString("X=%1 Y=%2 EV=%3").arg(X_tracker).arg(Y_tracker).arg(equivalence_value));
         }
@@ -431,10 +511,10 @@ void MainWindow::paint_image()
             // Draw an square based on the corrected Kalman coordinates
             // (blue for Kalman)
 #ifdef T_IMAGE_FROM_FILE
-            draw_square(&file_image, X_Kalman, Y_Kalman, Aim_size, 0, 0, 255);
+            draw_square(&file_image, X_Kalman, Y_Kalman, Pattern_window_size, 0, 0, 255);
 #endif // #ifdef T_IMAGE_FROM_FILE
 #ifdef T_IMAGE_FROM_CAPTURE
-            draw_square(&live_image, X_Kalman, Y_Kalman, Aim_size, 0, 0, 255);
+            draw_square(&live_image, X_Kalman, Y_Kalman, Pattern_window_size, 0, 0, 255);
 #endif // #ifdef T_IMAGE_FROM_CAPTURE
             // Output the Kalman coordinates
             ui->lbl_status_kalman->setText(QString("X=%1 Y=%2").arg(X_Kalman).arg(Y_Kalman));
@@ -715,29 +795,32 @@ void MainWindow::plot(const unsigned y_max, const unsigned x_max)
 
 void MainWindow::on_btn_increase_search_window_clicked()
 {
-    if (Aim_size+Aim_size_increasing_step <= Max_aim_size)
+    if (Pattern_window_size+Pattern_window_size_increasing_step <= Max_pattern_window_size)
     {
-        Aim_size+=Aim_size_increasing_step;
+        Pattern_window_size+=Pattern_window_size_increasing_step;
+        Search_window_size = Pattern_window_size*2;
     }
 
 }
 
 void MainWindow::on_btn_decrease_search_window_clicked()
 {
-    if (Aim_size-Aim_size_increasing_step >= Min_aim_size)
+    if (Pattern_window_size-Pattern_window_size_increasing_step >= Min_pattern_window_size)
     {
-        Aim_size-=Aim_size_increasing_step;
+        Pattern_window_size-=Pattern_window_size_increasing_step;
+        Search_window_size = Pattern_window_size*2;
     }
 }
 
+#if 0
 void MainWindow::initialise_kalman()
 {
     // Kalman X
     // -------------------------------------------------------
     // Before reset set default covariances for process noise
     // and measurement noise
-    const double noise_covariance_Q = 1.0e-4; //1.0e-2
-    const double noise_covariance_R = 1.0;    //0.5
+    const double noise_covariance_Q = 1.0e-2; //1.0e-2
+    const double noise_covariance_R = 0.5;    //0.5
     Kalman_filter_pt[0]->noise_covariance_Q() = noise_covariance_Q;
     Kalman_filter_pt[0]->noise_covariance_R() = noise_covariance_R;
     // Reset
@@ -850,9 +933,9 @@ void MainWindow::apply_kalman(const bool predict_only)
     // from the sensor
     // The prediction given by the model
     const double this_x = prediction_x.at<double>(0, 0);
-    qDebug() << "KalmanPrediction X ("<< prediction_x.rows
-             << ", " << prediction_x.cols << "): ";
-    std::cerr << prediction_x << std::endl;
+    //qDebug() << "KalmanPrediction X ("<< prediction_x.rows
+    //         << ", " << prediction_x.cols << "): ";
+    //std::cerr << prediction_x << std::endl;
 
     // -------------------------------------------------------
     // Kalman Y
@@ -881,9 +964,9 @@ void MainWindow::apply_kalman(const bool predict_only)
     // from the sensor
     // The prediction given by the model
     const double this_y = prediction_y.at<double>(0, 0);
-    qDebug() << "KalmanPrediction Y ("<< prediction_y.rows
-             << ", " << prediction_y.cols << "): ";
-    std::cerr << prediction_y << std::endl;
+    //qDebug() << "KalmanPrediction Y ("<< prediction_y.rows
+    //         << ", " << prediction_y.cols << "): ";
+    //std::cerr << prediction_y << std::endl;
 
     // Only do prediction step, do not update using sensores measurements
     if (predict_only)
@@ -927,6 +1010,7 @@ void MainWindow::apply_kalman(const bool predict_only)
     Y_Kalman = updated_state_y.at<double>(0, 0);
 
 }
+#endif // #if 0
 
 #if 0
 static bool selectObject = false;

@@ -26,6 +26,15 @@ public:
     // with a new set of data)
     void reset();
 
+    // Initialise Kalman (matrices)
+    virtual void initialise(const double dt = 1.0,
+                            const double noise_covariance_q = 1.0e-3,
+                            const double noise_covariance_r = 0.5);
+
+    // Apply Kalman PREDICT, then UPDATE
+    virtual void apply(const double dt = 1.0,
+                       bool predict_only = false);
+
     // Gets a prediction x_{t|t-1} from the current state x_{t-1|t-1}.
     // Before calling this method you may have set some data in
     // the input control vector u, if you have no data for that then
@@ -125,6 +134,15 @@ public:
     inline double &Q(const unsigned i, const unsigned j)
      {return _Q->at<double>(i, j);}
 
+    // State vector x_predicted
+    inline cv::Mat *x_predicted() {return _x_predicted;}
+    // Read access to the state vector x_predicted
+    inline double x_predicted(const unsigned i) const
+    {return _x_predicted->at<double>(i, 0);}
+    // Read-write access to the state vector x_predicted
+    inline double &x_predicted(const unsigned i)
+    {return _x_predicted->at<double>(i, 0);}
+
     // --------------------------------------------------
     // Updating stage -----------------------------------
     // --------------------------------------------------
@@ -152,6 +170,15 @@ public:
     // Read-write access to the measurement noise matrix R
     inline double &R(const unsigned i, const unsigned j)
      {return _R->at<double>(i, j);}
+
+    // State vector x_updated
+    inline cv::Mat *x_updated() {return _x_updated;}
+    // Read access to the state vector x_updated
+    inline double x_updated(const unsigned i) const
+    {return _x_updated->at<double>(i, 0);}
+    // Read-write access to the state vector x_updated
+    inline double &x_updated(const unsigned i)
+    {return _x_updated->at<double>(i, 0);}
 
 protected:
 
@@ -203,6 +230,9 @@ protected:
     // Process noise covariance Q
     cv::Mat *_Q;
 
+    // Result from prediction
+    cv::Mat *_x_predicted;
+
     // --------------------------------------------------
     // Updating stage -----------------------------------
     // --------------------------------------------------
@@ -212,6 +242,9 @@ protected:
     cv::Mat *_H;
     // Measurement noise covariance R
     cv::Mat *_R;
+
+    // Result from updating
+    cv::Mat *_x_updated;
 
 };
 
