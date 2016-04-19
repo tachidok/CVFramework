@@ -185,7 +185,8 @@ protected:
     // OpenCV Kalman filter
     cv::KalmanFilter* Kalman_filter_openCV_pt;
 
-    // Number of dynamic parameters or variables (ex. position, velocity)
+    // Number of dynamic parameters or variables, those that change
+    // along the computation (ex. position, velocity).
     const unsigned N_dynamic_parameters;
     // Number of parameters given by the sensors
     const unsigned N_measurement_parameters;

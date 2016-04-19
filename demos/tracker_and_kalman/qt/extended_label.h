@@ -1,10 +1,10 @@
 #ifndef EXTENDED_LABEL_H
 #define EXTENDED_LABEL_H
 
-#include <QLabel>
-#include <QMouseEvent>
+#include <QLabel>       // include this
+#include <QMouseEvent>  // include this
 #include <QEvent>
-#include <QDebug>
+#include <QDebug>       // include this
 
 class extended_label : public QLabel
 {
