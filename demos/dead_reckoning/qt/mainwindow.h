@@ -41,6 +41,13 @@ public slots:
     void main_timer_timeout();
 
 private:
+
+    // Applies a trajectory to the point that moves on the screen
+    void do_mouse_trajectory();
+    void do_sine_trajectory();
+    void do_const_velocity_trajectory();
+    void do_const_acceleration_trajectory();
+
     Ui::MainWindow *ui;
 
     // -------------------------------------------------------------------
@@ -54,31 +61,51 @@ private:
     unsigned Main_timer_miliseconds;
 
     // -------------------------------------------------------------------
-    // Mouse and Kalman coordinates stuff
+    // Trajectories
     // -------------------------------------------------------------------
+    bool Mouse_trajectory;
+    bool Sine_trajectory;
+    bool Const_velocity_trajectory;
+    bool Const_acceleration_trajectory;
 
+    // -------------------------------------------------------------------
+    // Draw trajectory stuff
+    // -------------------------------------------------------------------
+    int X_draw;
+    int Y_draw;
+
+    // History of trajectory coordinates
+    QVector<QVector<double> > Trajectory_coordinates;
+
+    // -------------------------------------------------------------------
+    // Mouse stuff
+    // -------------------------------------------------------------------
     // Left mouse pressed flag
     bool Left_mouse_pressed_flag;
     // Right mouse pressed flag
     bool Right_mouse_pressed_flag;
 
-    // Flag to indicate whether we have a lecture from the sensor
-    // for the position
-    bool Position_by_sensor;
-
-    // History of mouse and Kalman coordinates
-    QVector<QVector<double> > Mouse_coordinates;
-    QVector<QVector<double> > Kalman_coordinates;
-
-    // Global mouse and Kalman coordinates
+    // Global mouse coordinates
     int X_mouse;
     int Y_mouse;
-    int X_Kalman;
-    int Y_Kalman;
 
     // Previous coordinates for mouse
     int X_mouse_previous;
     int Y_mouse_previous;
+
+    // -------------------------------------------------------------------
+    // Kalman stuff
+    // -------------------------------------------------------------------
+    // Flag to indicate whether we have a lecture from the sensor
+    // for the position
+    bool Position_by_sensor;
+
+    // History of Kalman coordinates
+    QVector<QVector<double> > Kalman_coordinates;
+
+    // Kalman coordinates
+    int X_Kalman;
+    int Y_Kalman;
 
     // Velocities (updated by Kalman)
     double X_vel;

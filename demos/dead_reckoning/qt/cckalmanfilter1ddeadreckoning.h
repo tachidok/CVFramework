@@ -19,7 +19,7 @@ public:
                                   const unsigned n_control_parameters = 0);
 
     // Desctructor
-    ~CCKalmanFilter1DDeadReckoning();
+    virtual ~CCKalmanFilter1DDeadReckoning();
 
     // Initialise Kalman (matrices)
     virtual void initialise(const double dt = 1.0,

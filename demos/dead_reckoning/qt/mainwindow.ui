@@ -152,6 +152,58 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QGroupBox" name="gbx_trajectories">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>590</y>
+      <width>161</width>
+      <height>141</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Trajectories</string>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QRadioButton" name="rbt_trajectory_mouse">
+       <property name="text">
+        <string>Mouse</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="rbt_trajectory_sine">
+       <property name="text">
+        <string>Sine</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="rbt_trajectory_cvel">
+       <property name="text">
+        <string>C. Velocity</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="rbt_trajectory_cacc">
+       <property name="text">
+        <string>C. Acceleration</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

@@ -22,15 +22,27 @@ MainWindow::MainWindow(QWidget *parent) :
     Main_timer_miliseconds = 25;
 
     // -------------------------------------------------------------------
-    // Mouse and Kalman coordinates stuff
+    // Trajectories
+    // -------------------------------------------------------------------
+    // The mouse trajectory is set by default, other trajectories can be
+    // enabled by selecting the appropiate option
+    Mouse_trajectory = true;
+    Sine_trajectory = false;
+    Const_velocity_trajectory = false;
+    Const_acceleration_trajectory = false;
+
+    // -------------------------------------------------------------------
+    // Trajectories and Kalman coordinates stuff
     // -------------------------------------------------------------------
     const unsigned dim = 2;
-    Mouse_coordinates.resize(dim);
+    Trajectory_coordinates.resize(dim);
     Kalman_coordinates.resize(dim);
 
     // Initialise coordinates
     X_mouse = 0;
     Y_mouse = 0;
+    X_draw = 0;
+    Y_draw = 0;
     X_Kalman = 0;
     Y_Kalman = 0;
 
@@ -336,8 +348,8 @@ void MainWindow::plot(const unsigned y_max, const unsigned x_max)
     Global_counter_for_plot++;
 
     // Add the current mouse coordinates to the data to plot
-    Mouse_coordinates[0].push_back(X_mouse);
-    Mouse_coordinates[1].push_back(Y_mouse);
+    Trajectory_coordinates[0].push_back(X_mouse);
+    Trajectory_coordinates[1].push_back(Y_mouse);
 
     // Add the current Kalman coordinate to the data to plot
     Kalman_coordinates[0].push_back(X_Kalman);
@@ -356,7 +368,7 @@ void MainWindow::plot(const unsigned y_max, const unsigned x_max)
     // Mouse (GREEN)
     //ui->wdg_plot->graph(0)->setLineStyle(QCPGraph::lsNone);
     ui->wdg_plot_x->graph(0)->setPen(QPen(QColor(0,255,0)));
-    ui->wdg_plot_x->graph(0)->setData(time_data, Mouse_coordinates[0]);
+    ui->wdg_plot_x->graph(0)->setData(time_data, Trajectory_coordinates[0]);
     // ---------------------------------------------------------------
     // Kalman (BLUE)
     ui->wdg_plot_x->graph(1)->setPen(QPen(QColor(0,0,255)));
@@ -380,7 +392,7 @@ void MainWindow::plot(const unsigned y_max, const unsigned x_max)
     // Mouse (GREEN)
     //ui->wdg_plot->graph(0)->setLineStyle(QCPGraph::lsNone);
     ui->wdg_plot_y->graph(0)->setPen(QPen(QColor(0,255,0)));
-    ui->wdg_plot_y->graph(0)->setData(time_data, Mouse_coordinates[1]);
+    ui->wdg_plot_y->graph(0)->setData(time_data, Trajectory_coordinates[1]);
     // ---------------------------------------------------------------
     // Kalman (BLUE)
     ui->wdg_plot_y->graph(1)->setPen(QPen(QColor(0,0,255)));
