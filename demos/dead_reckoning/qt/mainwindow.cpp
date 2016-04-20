@@ -9,7 +9,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     connect(ui->lbl_mouse, SIGNAL(mouse_pos()), this, SLOT(mouse_pos()));
-    connect(ui->lbl_mouse, SIGNAL(mouse_pressed()), this, SLOT(mouse_pressed()));
+    connect(ui->lbl_mouse, SIGNAL(left_mouse_pressed()), this, SLOT(left_mouse_pressed()));
+    connect(ui->lbl_mouse, SIGNAL(right_mouse_pressed()), this, SLOT(right_mouse_pressed()));
 
     // -------------------------------------------------------------------
     // Timer stuff
@@ -18,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qmain_timer_pt = new QTimer();
     connect(qmain_timer_pt, SIGNAL(timeout()), this, SLOT(main_timer_timeout()));
     // Set miliseconds for timer
-    Main_timer_miliseconds = 50;
+    Main_timer_miliseconds = 25;
 
     // -------------------------------------------------------------------
     // Mouse and Kalman coordinates stuff
@@ -33,8 +34,16 @@ MainWindow::MainWindow(QWidget *parent) :
     X_Kalman = 0;
     Y_Kalman = 0;
 
+    // Initialise velocities
+    X_vel = 0.0;
+    Y_vel = 0.0;
+
     // Initialise flag
-    Mouse_pressed_flag = false;
+    Left_mouse_pressed_flag = false;
+    Right_mouse_pressed_flag = true;
+
+    // The position by the sensor is given by default
+    Position_by_sensor = true;
 
     // -------------------------------------------------------------------
     // Kalman stuff
@@ -46,13 +55,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // -- dynamic parameters (2, position and velocity)
     const unsigned n_dynamic_parameters = 2;
-    // -- measurement parameters (1, position)
+    // -- measurement parameters (2, position and velocity)
     const unsigned n_measurement_parameters = 2;
     // -- control parameters (1, acceleration)
     const unsigned n_control_parameters = 1;
 
     // Create as many instances of 1D Kalman filters as required
-    Kalman_filter_pt = new CCKalmanFilter1DDeadReckoning*[N_Kalman_filters];
+    Kalman_filter_pt =
+            new CCKalmanFilter1DDeadReckoning*[N_Kalman_filters];
 
     // Create particular instances of Kalman filter (for X)
     Kalman_filter_pt[0] =
@@ -76,9 +86,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->wdg_plot_x->addGraph(); // Mouse coordinates
     ui->wdg_plot_x->addGraph(); // Kalman coordinates
 
-    // Create the graph for X coordinates
+    // Create the graph for Y coordinates
     ui->wdg_plot_y->addGraph(); // Mouse coordinates
     ui->wdg_plot_y->addGraph(); // Kalman coordinates
+
+    // Create the graph for velocity
+    ui->wdg_plot_vel->addGraph(); // Velocity
 
     Global_counter_for_plot = 0;
 
@@ -138,15 +151,15 @@ void MainWindow::mouse_pos()
 
 }
 
-void MainWindow::mouse_pressed()
+void MainWindow::left_mouse_pressed()
 {
-    if (Mouse_pressed_flag)
+    if (Left_mouse_pressed_flag)
     {
-        Mouse_pressed_flag = false;
+        Left_mouse_pressed_flag = false;
     }
     else
     {
-        Mouse_pressed_flag = true;
+        Left_mouse_pressed_flag = true;
 
         // Is Kalman, initiliased, if not then initialise
         if (!Initialised_Kalman)
@@ -166,7 +179,6 @@ void MainWindow::mouse_pressed()
                                             noise_covariance_q,
                                             noise_covariance_r);
 
-
             // Kalman Y
             // Initial state vector for Kalman X
             Kalman_filter_pt[1]->x(0) = Y_mouse; // y-position
@@ -184,13 +196,27 @@ void MainWindow::mouse_pressed()
 
 }
 
+void MainWindow::right_mouse_pressed()
+{
+    if (Right_mouse_pressed_flag)
+    {
+        Position_by_sensor = false;
+        Right_mouse_pressed_flag = false;
+    }
+    else
+    {
+        Position_by_sensor = true;
+        Right_mouse_pressed_flag = true;
+    }
+}
+
 // ======================================================================
 // Called method when the main timer timed out!
 // ======================================================================
 void MainWindow::main_timer_timeout()
 {
 
-    if (Mouse_pressed_flag)
+    if (Left_mouse_pressed_flag)
     {
         // ----------------------------------------------------------------
         // ----------------------------------------------------------------
@@ -200,6 +226,18 @@ void MainWindow::main_timer_timeout()
         if (Initialised_Kalman)
         {
             // Process Kalman
+
+            // Is the position sensor enabled?
+            if (Position_by_sensor)
+            {
+                Kalman_filter_pt[0]->enable_use_position_sensor();
+                Kalman_filter_pt[1]->enable_use_position_sensor();
+            }
+            else
+            {
+                Kalman_filter_pt[0]->disable_use_position_sensor();
+                Kalman_filter_pt[1]->disable_use_position_sensor();
+            }
 
             const double dt = 1;
             // Get velocity from mouse positions
@@ -218,6 +256,7 @@ void MainWindow::main_timer_timeout()
             // Set variables for ploting and output
             // Take it from updated
             X_Kalman = Kalman_filter_pt[0]->x_updated(0);
+            X_vel = Kalman_filter_pt[0]->x_updated(1);
 
             // -------------------------------------------------
             // Kalman Y
@@ -230,6 +269,7 @@ void MainWindow::main_timer_timeout()
             // Set variables for ploting and output
             // Take it from updated
             Y_Kalman = Kalman_filter_pt[1]->x_updated(0);
+            Y_vel = Kalman_filter_pt[1]->x_updated(1);
 
         } // if (Initialised_Kalman)
 
@@ -249,6 +289,8 @@ void MainWindow::main_timer_timeout()
             cv::rectangle(*Blank_image_pt, cv::Rect(X_Kalman, Y_Kalman, 3, 3),
                           cv::Scalar(255, 0, 0), 1);
         }
+
+        ui->lbl_mouse_vel->setText(QString("Vx = %1  Vy = %2").arg(X_vel).arg(Y_vel));
 
         // ----------------------------------------------------------------
         // ----------------------------------------------------------------
@@ -270,6 +312,16 @@ void MainWindow::main_timer_timeout()
         // Do nothing
     }
 
+    // Show whether the position is given by the sensor or not
+    if (Position_by_sensor)
+    {
+        ui->lbl_position_sensor->setText("<font color='green'>Position sensor ON</font>");
+    }
+    else
+    {
+        ui->lbl_position_sensor->setText("<font color='red'>Position sensor OFF</font>");
+    }
+
 }
 
 // ======================================================================
@@ -277,6 +329,8 @@ void MainWindow::main_timer_timeout()
 // ======================================================================
 void MainWindow::plot(const unsigned y_max, const unsigned x_max)
 {
+
+    const unsigned range_in_x = 2500;
 
     // Increase the global counter
     Global_counter_for_plot++;
@@ -308,13 +362,12 @@ void MainWindow::plot(const unsigned y_max, const unsigned x_max)
     ui->wdg_plot_x->graph(1)->setPen(QPen(QColor(0,0,255)));
     ui->wdg_plot_x->graph(1)->setData(time_data, Kalman_coordinates[0]);
 
-    // Assign labels to axis
-    ui->wdg_plot_x->xAxis->setLabel("time");
+    // Assign labels to axis    ui->wdg_plot_x->xAxis->setLabel("time");
     ui->wdg_plot_x->yAxis->setLabel("x-position");
 
     // Set range
-    ui->wdg_plot_x->xAxis->setRange(0, x_max);
-    ui->wdg_plot_x->yAxis->setRange(0, y_max);
+    ui->wdg_plot_x->xAxis->setRange(0, range_in_x);
+    ui->wdg_plot_x->yAxis->setRange(0, x_max);
 
     ui->wdg_plot_x->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     ui->wdg_plot_x->replot();
@@ -338,11 +391,42 @@ void MainWindow::plot(const unsigned y_max, const unsigned x_max)
     ui->wdg_plot_y->yAxis->setLabel("y-position");
 
     // Set range
-    ui->wdg_plot_y->xAxis->setRange(0, x_max);
+    ui->wdg_plot_y->xAxis->setRange(0, range_in_x);
     ui->wdg_plot_y->yAxis->setRange(0, y_max);
 
     ui->wdg_plot_y->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     ui->wdg_plot_y->replot();
+
+    // ---------------------------------------------------------------
+    // VELOCITY PLOT
+    // ---------------------------------------------------------------
+    // Generate line from origin
+    // Number of sample points
+    const double n_sample = 2;
+    QVector<double> y_vel(n_sample);
+    QVector<double> x_vel(n_sample);
+    x_vel[0] = 0.0;
+    y_vel[0] = 0.0;
+    x_vel[1] = X_vel;
+    y_vel[1] = Y_vel;
+    // Assign data to plot
+    // ---------------------------------------------------------------
+    // Mouse (RED)
+    QPen this_pen(QColor(255,0,0));
+    this_pen.setWidth(3);
+    ui->wdg_plot_vel->graph(0)->setPen(this_pen);
+    ui->wdg_plot_vel->graph(0)->setData(x_vel, y_vel);
+
+    // Assign labels to axis
+    //ui->wdg_plot_vel->xAxis->setLabel("time");
+    //ui->wdg_plot_vel->yAxis->setLabel("y-position");
+
+    // Set range
+    ui->wdg_plot_vel->xAxis->setRange(-50, 50);
+    ui->wdg_plot_vel->yAxis->setRange(-50, 50);
+
+    ui->wdg_plot_vel->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    ui->wdg_plot_vel->replot();
 
 }
 
@@ -379,7 +463,7 @@ void MainWindow::on_btn_stop_main_timer_clicked()
 
         // Reinitialise Kalman and mouse pressed flag
         Initialised_Kalman = false;
-        Mouse_pressed_flag = false;
+        Left_mouse_pressed_flag = false;
 
     }
 

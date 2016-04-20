@@ -11,7 +11,8 @@ CCKalmanFilter1DDeadReckoning::CCKalmanFilter1DDeadReckoning(
                      n_measurement_parameters,
                      n_control_parameters)
 {
-
+    // Use information from position sensor by default
+    Use_position_sensor = true;
 }
 
 // ======================================================================
@@ -51,8 +52,8 @@ void CCKalmanFilter1DDeadReckoning::initialise(const double dt,
     Q(1, 1) = dt*dt * noise_covariance_q;
 
     // Initialise transformation matrix H
-    H(0, 0) = 1.0;
-    H(0, 1) = 0.0;
+    H(0, 0) = 1.0;  H(0, 1) = 0.0;
+    H(1, 0) = 0.0;  H(1, 1) = 1.0;
 
     // Set measurement (sensors) noise covariance
     R(0, 0) = noise_covariance_r;
@@ -88,6 +89,7 @@ void CCKalmanFilter1DDeadReckoning::apply(const double dt,
     // Set input control parameters
     // Acceleration
     const double a_x = 0.05; // pixels per frame
+    //const double a_x = 1.0; // pixels per frame
     u(0) = a_x;
 
     // -------------------------------------------------------
@@ -106,6 +108,16 @@ void CCKalmanFilter1DDeadReckoning::apply(const double dt,
     if (predict_only)
     {
         return;
+    }
+
+    // Show we use the data provided by the position sensor?
+    if (Use_position_sensor)
+    {
+        H(0, 0) = 1.0;
+    }
+    else
+    {
+        H(0, 0) = 0.0;
     }
 
     // -------------------------------------------------

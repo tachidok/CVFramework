@@ -14,5 +14,17 @@ void my_mouse_label::mouseMoveEvent(QMouseEvent *ev)
 
 void my_mouse_label::mousePressEvent(QMouseEvent *ev)
 {
-    emit mouse_pressed();
+    int button = ev->button();
+    if (button == 1) // left button
+    {
+        emit left_mouse_pressed();
+    }
+    else if (button == 2) // right button
+    {
+        emit right_mouse_pressed();
+    }
+    else
+    {
+        qDebug() << "A non-accepted button was pressed!!";
+    }
 }

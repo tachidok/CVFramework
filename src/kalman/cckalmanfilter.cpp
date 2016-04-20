@@ -284,6 +284,10 @@ void CCKalmanFilter::apply(const double dt,
 // ======================================================================
 cv::Mat CCKalmanFilter::predict()
 {
+
+    // We do not need to re-establish the pointer to the matrices and
+    // vectors since that was done in the constructor // tachidok
+#if 0
     // Pass the current state to the Kalman filter
     Kalman_filter_openCV_pt->statePost = *_x;
     // Set the transition matrix into the Kalman filter
@@ -295,16 +299,13 @@ cv::Mat CCKalmanFilter::predict()
     Kalman_filter_openCV_pt->errorCovPost = *_P;
     // Process noise covariance Q
     Kalman_filter_openCV_pt->processNoiseCov = *_Q;
+#endif // #if 0
 
     // Predict (using the control vector u that should have been modified
     // before calling this method, otherwise it has no effect since it is
-    // set to 0 by default). If no sensor value z is given for the updating
-    // stage then we use the same as the predicted one
-    //(*_z) = Kalman_filter_openCV_pt->predict(*_u);
+    // set to 0 by default)
     return Kalman_filter_openCV_pt->predict(*_u);
 
-    // Return the predicted value
-    //return (*_z);
 }
 
 // ======================================================================

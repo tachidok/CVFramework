@@ -3,7 +3,7 @@
 
 #include "../../../src/kalman/cckalmanfilter.h"
 
-// This class extends the CCKalmanFilter class to give an specific solution
+// This class extends the CCKalmanFilter class to give an specialised solution
 // to the dead reckoning problem when having three inputs from sensors:
 // [1] Position, not always present (probably given by a GPS)
 // [2] Velocity, always present (given by some sensor that returns velocity)
@@ -29,6 +29,21 @@ public:
     // Apply Kalman PREDICT, then UPDATE
     virtual void apply(const double dt = 1.0,
                        bool predict_only = false);
+
+    // Enables the use of the data from the position sensor
+    inline void enable_use_position_sensor()
+    {Use_position_sensor = true;}
+
+    // Disables the use of the data from the position sensor
+    inline void disable_use_position_sensor()
+    {Use_position_sensor = false;}
+
+protected:
+
+    // Flag to indicate whether to use information from positon sensor
+    // to correct the predictions (true by default)
+    bool Use_position_sensor;
+
 
 };
 

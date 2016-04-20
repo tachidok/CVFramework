@@ -28,7 +28,8 @@ public:
 
 signals:
 
-    void mouse_pressed();
+    void left_mouse_pressed();
+    void right_mouse_pressed();
     void mouse_pos();
 
 public slots:

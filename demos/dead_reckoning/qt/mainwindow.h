@@ -57,8 +57,14 @@ private:
     // Mouse and Kalman coordinates stuff
     // -------------------------------------------------------------------
 
-    // Mouse presed flag
-    bool Mouse_pressed_flag;
+    // Left mouse pressed flag
+    bool Left_mouse_pressed_flag;
+    // Right mouse pressed flag
+    bool Right_mouse_pressed_flag;
+
+    // Flag to indicate whether we have a lecture from the sensor
+    // for the position
+    bool Position_by_sensor;
 
     // History of mouse and Kalman coordinates
     QVector<QVector<double> > Mouse_coordinates;
@@ -74,11 +80,15 @@ private:
     int X_mouse_previous;
     int Y_mouse_previous;
 
+    // Velocities (updated by Kalman)
+    double X_vel;
+    double Y_vel;
+
     // The number of Kalman filter to use
     unsigned N_Kalman_filters;
 
     // Kalman Filter objects, x and y independently
-    CCKalmanFilter **Kalman_filter_pt;
+    CCKalmanFilter1DDeadReckoning **Kalman_filter_pt;
 
     // Flag to indicate whether Kalman is initialised or not
     bool Initialised_Kalman;
@@ -97,7 +107,8 @@ private slots:
 
     // Mouse events
     void mouse_pos();
-    void mouse_pressed();
+    void left_mouse_pressed();
+    void right_mouse_pressed();
 
     void on_btnstart_main_timer_clicked();
     void on_btn_stop_main_timer_clicked();
