@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTimer>
 #include "my_mouse_label.h"
+#include <cmath>
 
 // ===================================================
 // My additional classes
@@ -69,10 +70,28 @@ private:
     bool Const_acceleration_trajectory;
 
     // -------------------------------------------------------------------
-    // Draw trajectory stuff
+    // Trajectory stuff
     // -------------------------------------------------------------------
-    int X_draw;
-    int Y_draw;
+    int X_trajectory;
+    int Y_trajectory;
+    int X_trajectory_previous;
+    int Y_trajectory_previous;
+
+    // To indicate whether is the first time in the trajectory methods.
+    // Some initialisation maybe required
+    bool First_time_trajectory;
+
+    // Angle, distance (radius) and step
+    double Angle;
+    double dAngle;
+    double Sign_increase_angle;
+    double Radius;
+    double dRadius;
+    double Sign_increase_radius;
+
+    // The origin for the trajectories
+    int X_origin;
+    int Y_origin;
 
     // History of trajectory coordinates
     QVector<QVector<double> > Trajectory_coordinates;
@@ -107,6 +126,8 @@ private:
     int X_Kalman;
     int Y_Kalman;
 
+    bool Add_some_noise;
+
     // Velocities (updated by Kalman)
     double X_vel;
     double Y_vel;
@@ -139,6 +160,12 @@ private slots:
 
     void on_btnstart_main_timer_clicked();
     void on_btn_stop_main_timer_clicked();
+    void on_rbt_trajectory_mouse_clicked();
+    void on_rbt_trajectory_sine_clicked();
+    void on_rbt_trajectory_cvel_clicked();
+    void on_rbt_trajectory_cacc_clicked();
+    void on_btn_clear_image_clicked();
+    void on_btn_add_noise_clicked();
 };
 
 namespace ASM {

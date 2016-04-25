@@ -110,7 +110,7 @@ void CCKalmanFilter1DDeadReckoning::apply(const double dt,
         return;
     }
 
-    // Show we use the data provided by the position sensor?
+    // Should we use the data provided by the position sensor?
     if (Use_position_sensor)
     {
         H(0, 0) = 1.0;

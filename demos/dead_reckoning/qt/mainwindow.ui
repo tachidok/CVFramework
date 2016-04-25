@@ -204,6 +204,32 @@
      </item>
     </layout>
    </widget>
+   <widget class="QPushButton" name="btn_clear_image">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>580</y>
+      <width>99</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Clear stuff</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_add_noise">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>580</y>
+      <width>121</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Add some noise</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
