@@ -77,6 +77,9 @@ private:
     int X_trajectory_previous;
     int Y_trajectory_previous;
 
+    //double Xd_current_trajectory;
+    //double Yd_current_trajectory;
+
     // To indicate whether is the first time in the trajectory methods.
     // Some initialisation maybe required
     bool First_time_trajectory;
@@ -88,10 +91,6 @@ private:
     double Radius;
     double dRadius;
     double Sign_increase_radius;
-
-    // The origin for the trajectories
-    int X_origin;
-    int Y_origin;
 
     // History of trajectory coordinates
     QVector<QVector<double> > Trajectory_coordinates;
@@ -150,6 +149,8 @@ private:
     // Image stuff
     // -------------------------------------------------------------------
     cv::Mat *Blank_image_pt;
+    unsigned Label_image_width;
+    unsigned Label_image_height;
 
 private slots:
 

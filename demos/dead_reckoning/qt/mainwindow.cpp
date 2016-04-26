@@ -42,35 +42,29 @@ MainWindow::MainWindow(QWidget *parent) :
     Kalman_coordinates.resize(dim);
 
     // Initialise coordinates
-    X_mouse = 320;
-    Y_mouse = 240;
-    X_mouse_previous = X_mouse;
-    Y_mouse_previous = Y_mouse;
-    X_trajectory = 320;
-    Y_trajectory = 240;
-    X_trajectory_previous = X_trajectory;
-    Y_trajectory_previous = Y_trajectory;
+    X_mouse_previous = X_mouse = Label_image_width * 0.5;
+    Y_mouse_previous = Y_mouse = Label_image_height * 0.5;
 
-    X_Kalman = 0;
-    Y_Kalman = 0;
+    X_trajectory_previous = X_trajectory = X_mouse;
+    Y_trajectory_previous = Y_trajectory = Y_mouse;
+
+    //Xd_current_trajectory = static_cast<double>(X_trajectory);
+    //Yd_current_trajectory = static_cast<double>(Y_trajectory);
+
+    X_Kalman = X_mouse;
+    Y_Kalman = Y_mouse;
 
     // Should we add some noise
     Add_some_noise = false;
 
     // Initialise angle and radius for trajectories, same as steps
     Angle = 0.0;
-    const double n_steps_angle = 100.0;
-    dAngle = M_PI*2.0/(n_steps_angle-1.0);
+    const double n_steps_angle = 500.0;
+    dAngle = 2.0*M_PI/n_steps_angle;
     Sign_increase_angle = 1.0;
 
     Radius = 0.0;
-    const double n_steps_radius = 100.0;
-    dRadius = 320.0 / (n_steps_radius-1.0);
-    Sign_increase_radius = 1.0;
-
-    // The origin for the trajectories
-    X_origin = 320;  // The centre of the image
-    Y_origin = 240;
+    Sign_increase_radius = -1.0;
 
     // Initialise velocities
     X_vel = 0.0;
@@ -241,8 +235,8 @@ void MainWindow::left_mouse_pressed()
             // -------------------------------------------------------
             // Initialise Kalmans since this is a new set of data
             // -------------------------------------------------------
-            const double noise_covariance_q = 1.0e-2; //1.0e-2
-            const double noise_covariance_r = 0.5;    //0.5
+            const double noise_covariance_q = 1.0e-3; //1.0e-2
+            const double noise_covariance_r = 10.0;    //0.5
 
             // Kalman X
             // Initial state vector for Kalman X
@@ -343,6 +337,19 @@ void MainWindow::main_timer_timeout()
             }
 
             const double dt = 1;
+
+            // We may add some noise
+            if (Add_some_noise)
+            {
+                // Noise for x
+                const int noise_position_x = 10; // in pixels
+                X_trajectory = X_trajectory + std::rand() % (2*noise_position_x) - noise_position_x;
+
+                // Noise for y
+                const int noise_position_y = 10; // in pixels
+                Y_trajectory = Y_trajectory + std::rand() % (2*noise_position_y) - noise_position_y;
+            }
+
             // Get velocity from current and old trajectory positions
             double x_vel = (X_trajectory - X_trajectory_previous) / dt;
             double y_vel = (Y_trajectory - Y_trajectory_previous) / dt;
@@ -350,20 +357,10 @@ void MainWindow::main_timer_timeout()
             // -------------------------------------------------
             // Kalman X
             // -------------------------------------------------
-            // Set measurement (we may add some noise to the measurement)
-            if (Add_some_noise)
-            {
-                const int noise_position_x = 1; // in pixels
-                const int noise_velocity_x = 1; // in pixels
-                //qDebug() << "Rand: " << static_cast<int>(std::rand()) % (2*noise_position_x) - noise_position_x;
-                Kalman_filter_pt[0]->z(0) = X_trajectory + std::rand() % (2*noise_position_x) - noise_position_x;
-                Kalman_filter_pt[0]->z(1) = x_vel + std::rand() % noise_velocity_x - noise_velocity_x;
-            }
-            else
-            {
-                Kalman_filter_pt[0]->z(0) = X_trajectory;
-                Kalman_filter_pt[0]->z(1) = x_vel;
-            }
+            // Set measurement
+            Kalman_filter_pt[0]->z(0) = X_trajectory;
+            Kalman_filter_pt[0]->z(1) = x_vel;
+
             // Apply Kalman
             Kalman_filter_pt[0]->apply(dt);
 
@@ -375,19 +372,9 @@ void MainWindow::main_timer_timeout()
             // -------------------------------------------------
             // Kalman Y
             // -------------------------------------------------
-            // Set measurement (we may add some noise to the measurement)
-            if (Add_some_noise)
-            {
-                Kalman_filter_pt[1]->z(0) = Y_trajectory;
-                Kalman_filter_pt[1]->z(1) = y_vel;
-            }
-            else
-            {
-                const int noise_position_y = 1; // in pixels
-                const int noise_velocity_y = 1; // in pixels
-                Kalman_filter_pt[1]->z(0) = Y_trajectory  + std::rand() % (2*noise_position_y) - noise_position_y;
-                Kalman_filter_pt[1]->z(1) = y_vel + std::rand() % (2*noise_velocity_y) - noise_velocity_y;
-            }
+            // Set measurement
+            Kalman_filter_pt[1]->z(0) = Y_trajectory;
+            Kalman_filter_pt[1]->z(1) = y_vel;
             // Apply Kalman
             Kalman_filter_pt[1]->apply(dt);
             // Set variables for ploting and output
@@ -464,24 +451,21 @@ void MainWindow::do_mouse_trajectory()
 
 void MainWindow::do_sine_trajectory()
 {
-    // Get the current position of the trajectory, that will be used as the
-    // "origin" for the sine trajectory
+    // The origin is at the centre of the image
     if (First_time_trajectory)
     {
-        // Restart the angle and the radius
+        // Restart the angle
         Angle = 0.0;
-        Radius = 0.0;
 
-        // Set the origin as the current position of the trajectory
-        X_origin = 320;//X_trajectory;
-        Y_origin = 240;//Y_trajectory;
+        // Prepare the step for the angle and the number of points
+        // to discretise it
+        const double n_steps_angle = 500.0;
+        dAngle = 2.0*M_PI/n_steps_angle;
+        Sign_increase_angle = 1.0;
 
-        X_trajectory = 320;
-        Y_trajectory = 240;
-
-        // How many pixels are there to the left and right of the "origin"
-        double to_the_left = X_origin;
-        double to_the_right = (Blank_image_pt->cols - 1)  - X_origin;
+        // Starting position
+        X_trajectory = Label_image_width * 0.5;
+        Y_trajectory = Label_image_height * 0.5;
 
         // After initialisation set the first time flag to false
         First_time_trajectory = false;
@@ -489,39 +473,191 @@ void MainWindow::do_sine_trajectory()
     }
     else
     {
-        // Map [0:640) to [-2Pi:2Pi)
+        // ---------------------------------------------------------------
+        // Work on X
+        // ---------------------------------------------------------------
+        // Map [-4pi:4pi] -> [0:640]
+        // Normalise
+        const double x_normal = (Angle + 4.0*M_PI)/(8.0*M_PI);
+        // Scale
+        double eighty_percent_x = Label_image_width * 0.80;
+        double ten_percent_x = Label_image_width * 0.10;
+        const double x_scaled = ten_percent_x + x_normal * eighty_percent_x;
 
-        // Get the sine of the angle
-        Y_trajectory = std::sin(Angle)*220.0 + 240; // *220 + 240 to map to
-                                                    // an slightly smaller
-                                                    // domain than that of
-                                                    // the image
-        if (X_trajectory + 1 >= Blank_image_pt->cols-1)
+        // ---------------------------------------------------------------
+        // Work on Y
+        // ---------------------------------------------------------------
+        // Map [-1:1] -> [0:480]
+        // Normalise
+        const double y_normal = (std::sin(Angle) + 1.0) * 0.5;
+        // Scale
+        double eighty_percent_y = Label_image_height * 0.80;
+        double ten_percent_y = Label_image_height * 0.10;
+        const double y_scaled = ten_percent_y + y_normal * eighty_percent_y;
+
+        // cast and get the unsigned values to draw
+        X_trajectory = static_cast<unsigned>(x_scaled);
+        Y_trajectory = static_cast<unsigned>(y_scaled);
+
+        //qDebug() << "Angle: " << Angle << "x_normal" << x_normal << "x_scaled" << x_scaled << "X_trajectory: " << X_trajectory << " Y_trajectory: " << Y_trajectory;
+
+        // Increase values for next data
+        // ---------------------------------------------------------------
+        if (X_trajectory + 1 >=
+                static_cast<double>(Blank_image_pt->cols*0.98) )
         {
             Sign_increase_angle = -1.0;
         }
-        else if (X_trajectory - 1 == 0)
+        else if (X_trajectory <=
+                 static_cast<double>(Blank_image_pt->cols*0.02))
         {
             Sign_increase_angle = 1.0;
         }
 
+        // Compute angle and position for the next x and y
         Angle+=dAngle*Sign_increase_angle;
-        X_trajectory+=Sign_increase_angle;
+        //Xd_current_trajectory+=dAngle*Sign_increase_angle;
         //qDebug() << "Angle: " << Angle << "X_trajectory: " << X_trajectory << " Y_trajectory: " << Y_trajectory;
+
     }
 
 }
 
 void MainWindow::do_const_velocity_trajectory()
 {
-    qDebug() << "Doing const vel trajectory";
-    do_sine_trajectory();
+
+    // ------------------------------------------------------------------
+    // Constant velocity because the number of points for the angle
+    // along each circle of a given radius is the same
+    // ------------------------------------------------------------------
+
+    // The origin is at the centre of the image
+    if (First_time_trajectory)
+    {
+        // Set the radius and the angle
+        Angle = 0.0;
+        Radius = 0.5 * Label_image_height;
+
+        // Number of points to discretise the angle
+        const double n_steps_angle = 500.0;
+        dAngle = 2.0*M_PI/n_steps_angle;
+        Sign_increase_angle = 1.0;
+
+        // Discretise the radius
+        const double n_steps_radius = 10.0;
+        dRadius = (Label_image_height * 0.5) / n_steps_radius;
+        Sign_increase_radius = -1.0;
+
+        // Starting position
+        X_trajectory = Label_image_width * 0.5 + Radius*std::cos(Angle);
+        Y_trajectory = Label_image_height * 0.5 + Radius*std::sin(Angle);
+
+        // After initialisation set the first time flag to false
+        First_time_trajectory = false;
+
+    }
+    else
+    {
+        // New position position
+        X_trajectory = Label_image_width * 0.5 + Radius*std::cos(Angle);
+        Y_trajectory = Label_image_height * 0.5 + Radius*std::sin(Angle);
+
+        //qDebug() << "Angle: " << Angle << "Radius: " << Radius << "X_trajectory: " << X_trajectory << " Y_trajectory: " << Y_trajectory;
+
+        Angle+=dAngle;
+
+        if (Angle >= 2.0*M_PI)
+        {
+            Angle = 0.0;
+            Radius+= dRadius*Sign_increase_radius;
+        }
+
+        if (Radius <= dRadius)
+        {
+            Sign_increase_radius = 1.0;
+        }
+        else if (Radius >= (Label_image_height * 0.5) - dRadius)
+        {
+            Sign_increase_radius = -1.0;
+        }
+    }
+
 }
 
 void MainWindow::do_const_acceleration_trajectory()
 {
-    qDebug() << "Doing const acce trajectory";
-    do_mouse_trajectory();
+    // ---------------------------------------------------------------------
+    // Constant acceleration because the number of points for the angle
+    // along the spiral changes as a function of the radius
+    // ---------------------------------------------------------------------
+
+    // The origin is at the centre of the image
+    if (First_time_trajectory)
+    {
+        // Set the radius and the angle
+        Angle = 0.0;
+        Radius = 0.5 * Label_image_height;
+
+        // Number of points to discretise the angle
+        const double n_steps_angle = 500.0;
+        dAngle = 2.0*M_PI/n_steps_angle;
+        Sign_increase_angle = 1.0;
+
+        // Discretise the radius
+        const double n_steps_radius = 5000.0;
+        dRadius = (Label_image_height * 0.5) / n_steps_radius;
+        Sign_increase_radius = -1.0;
+
+        // Starting position
+        X_trajectory = Label_image_width * 0.5 + Radius*std::cos(Angle);
+        Y_trajectory = Label_image_height * 0.5 + Radius*std::sin(Angle);
+
+        // After initialisation set the first time flag to false
+        First_time_trajectory = false;
+
+    }
+    else
+    {
+        // New position position
+        X_trajectory = Label_image_width * 0.5 + Radius*std::cos(Angle);
+        Y_trajectory = Label_image_height * 0.5 + Radius*std::sin(Angle);
+
+        //qDebug() << "Angle: " << Angle << "Radius: " << Radius << "X_trajectory: " << X_trajectory << " Y_trajectory: " << Y_trajectory;
+
+        Angle+=dAngle;
+
+        if (Angle >= 2.0*M_PI)
+        {
+            Angle = 0.0;
+        }
+
+        // Reduce or increase the radius to do the spiraling effect
+        Radius+= dRadius*Sign_increase_radius;
+
+        // ------------------------------------------------------------
+        // Compute the new dAngle as a function of the Radius
+        // ------------------------------------------------------------
+        // Normalise the radius
+        const double radius_norm = Radius / (Label_image_height * 0.5);
+        // Reduce or increase the dAngle value
+        const double n_steps_angle = 500.0 * radius_norm * 0.3;
+        dAngle = 2.0*M_PI/n_steps_angle;
+
+        qDebug() << "N_steps: " << n_steps_angle << "Angle: " << Angle << " dAngle: " << dAngle << " Radius: " << Radius << " dRadius: " << dRadius << "Radius norm: " << radius_norm;
+
+        if (Radius <= 0.0)
+        {
+            Sign_increase_radius = 1.0;
+        }
+        else if (Radius >= (Label_image_height * 0.5) - dRadius)
+        {
+            Sign_increase_radius = -1.0;
+        }
+
+
+
+    }
+
 }
 
 // ======================================================================
@@ -530,7 +666,7 @@ void MainWindow::do_const_acceleration_trajectory()
 void MainWindow::plot(const unsigned y_max, const unsigned x_max)
 {
 
-    const unsigned range_in_x = 5000;
+    const unsigned range_in_x = 10000;
 
     // Increase the global counter
     Global_counter_for_plot++;
@@ -632,6 +768,9 @@ void MainWindow::plot(const unsigned y_max, const unsigned x_max)
 
 void MainWindow::on_btnstart_main_timer_clicked()
 {
+
+    Label_image_width = ui->lbl_mouse->width();
+    Label_image_height  = ui->lbl_mouse->height();
 
     if (!Main_timer_started)
     {
@@ -765,10 +904,14 @@ void MainWindow::on_btn_add_noise_clicked()
 {
     if (Add_some_noise)
     {
+        ui->btn_add_noise->setText("Add noise");
+        ui->lbl_noise_status->setText("<font color='black'>Noise OFF</font>");
         Add_some_noise = false;
     }
     else
     {
+        ui->btn_add_noise->setText("Take out noise");
+        ui->lbl_noise_status->setText("<font color='green'>Noise ON</font>");
         Add_some_noise = true;
     }
 }

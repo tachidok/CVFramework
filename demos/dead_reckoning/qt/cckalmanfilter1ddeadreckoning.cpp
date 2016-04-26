@@ -88,7 +88,8 @@ void CCKalmanFilter1DDeadReckoning::apply(const double dt,
 
     // Set input control parameters
     // Acceleration
-    const double a_x = 0.05; // pixels per frame
+    //const double a_x = 0.05; // pixels per frame
+    const double a_x = 0.00; // pixels per frame
     //const double a_x = 1.0; // pixels per frame
     u(0) = a_x;
 

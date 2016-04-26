@@ -136,11 +136,18 @@
    <widget class="QLabel" name="lbl_position_sensor">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>180</x>
       <y>550</y>
-      <width>151</width>
-      <height>17</height>
+      <width>201</width>
+      <height>31</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="frameShape">
      <enum>QFrame::Box</enum>
@@ -207,8 +214,8 @@
    <widget class="QPushButton" name="btn_clear_image">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>580</y>
+      <x>170</x>
+      <y>590</y>
       <width>99</width>
       <height>27</height>
      </rect>
@@ -220,14 +227,33 @@
    <widget class="QPushButton" name="btn_add_noise">
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>580</y>
+      <x>280</x>
+      <y>590</y>
       <width>121</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>Add some noise</string>
+     <string>Add noise</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_noise_status">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>620</y>
+      <width>91</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Box</enum>
+    </property>
+    <property name="text">
+     <string>Noise OFF</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
   </widget>
