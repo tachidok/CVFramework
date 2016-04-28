@@ -34,7 +34,7 @@ public:
     // -------------------------------------------------------------------
     // Plot stuff
     // -------------------------------------------------------------------
-    void plot(const unsigned y_max, const unsigned x_max);
+    void plot(const unsigned x_max, const unsigned y_max);
 
 public slots:
 

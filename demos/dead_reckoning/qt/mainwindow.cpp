@@ -413,7 +413,7 @@ void MainWindow::main_timer_timeout()
         // Get the maximum and minimum from the label
         const int x_max = static_cast<unsigned>(ui->lbl_mouse->width());
         const int y_max = static_cast<unsigned>(ui->lbl_mouse->height());
-        plot(y_max, x_max);
+        plot(x_max, y_max);
     }
     else
     {
@@ -663,7 +663,7 @@ void MainWindow::do_const_acceleration_trajectory()
 // ======================================================================
 // Plot the data
 // ======================================================================
-void MainWindow::plot(const unsigned y_max, const unsigned x_max)
+void MainWindow::plot(const unsigned x_max, const unsigned y_max)
 {
 
     const unsigned range_in_x = 10000;
