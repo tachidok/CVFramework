@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>671</width>
-    <height>364</height>
+    <height>394</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,7 +39,7 @@
      <rect>
       <x>10</x>
       <y>260</y>
-      <width>161</width>
+      <width>171</width>
       <height>27</height>
      </rect>
     </property>
@@ -50,14 +50,40 @@
    <widget class="QPushButton" name="btn_stop_capture_screen">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>190</x>
       <y>260</y>
-      <width>161</width>
+      <width>171</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
      <string>Stop Capture Screen</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_start_image_processing">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>290</y>
+      <width>171</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Start Image Processing</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_stop_image_processing">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>290</y>
+      <width>171</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Stop Image Processing</string>
     </property>
    </widget>
   </widget>

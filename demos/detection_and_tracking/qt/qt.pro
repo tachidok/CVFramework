@@ -30,13 +30,15 @@ LIBS += -L/usr/local/lib -lopencv_stitching -lopencv_superres\
 SOURCES += main.cpp\
         mainwindow.cpp \
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.cpp \
-    ccthreadedobject.cpp \
-    ../../../src/kalman/cckalmanfilter.cpp
+    ../../../src/kalman/cckalmanfilter.cpp \
+    ../../../src/screen_capture/cccapturethread.cpp \
+    ccprocessimagethread.cpp
 
 HEADERS  += mainwindow.h \
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.h \
-    ccthreadedobject.h \
     ../../../src/kalman/cckalmanfilter.h \
-    ../../../src/general/general_includes.h
+    ../../../src/general/general_includes.h \
+    ../../../src/screen_capture/cccapturethread.h \
+    ccprocessimagethread.h
 
 FORMS    += mainwindow.ui
