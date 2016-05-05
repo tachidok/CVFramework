@@ -134,6 +134,21 @@ bool CCOpenCVTracker::search_pattern(cv::Mat &image_pt,
         return false;
     }
 
+    // Validate the bounding box
+    if (bounding_box.x + bounding_box.width >= sub_image.cols ||
+            bounding_box.y + bounding_box.height >= sub_image.cols)
+    {
+        // Error
+        return false;
+    }
+
+#if 0
+    qDebug() << "BBoxx: " << bounding_box.x << "BBoxy: " << bounding_box.y;
+    qDebug() << "BBoxw: " << bounding_box.width << "BBoxh: " << bounding_box.height;
+
+    qDebug() << "SImg.cols: " << sub_image.cols << "SImg.rows: " << sub_image.rows;
+#endif
+
     // --------------------------------------------------------------------
     // Update the pattern
     // --------------------------------------------------------------------
@@ -148,16 +163,12 @@ bool CCOpenCVTracker::search_pattern(cv::Mat &image_pt,
     // --------------------------------------------------------------------
     // Return the x and y position based on the complete image
     // --------------------------------------------------------------------
-    //qDebug() << "InputX: " << x << "InputY: " << y;
-
     const unsigned local_centroid_x = bounding_box.x + bounding_box.width/2.0;
     const unsigned local_centroid_y = bounding_box.y + bounding_box.height/2.0;
 
     // Map from local to global coordinates
     centroid_x = centroid_x - Half_search_window_size + local_centroid_x;
     centroid_y = centroid_y - Half_search_window_size + local_centroid_y;
-
-    //qDebug() << "OutputX: " << x << "OutputY: " << y;
 
     return true;
 

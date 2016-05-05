@@ -44,6 +44,10 @@ private slots:
 
     void on_btn_stop_image_processing_clicked();
 
+    void on_btn_plus_pattern_window_clicked();
+
+    void on_btn_minus_pattern_window_clicked();
+
 private:
 
     Ui::MainWindow *ui;

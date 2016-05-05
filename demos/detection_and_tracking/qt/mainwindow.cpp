@@ -75,19 +75,19 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
 
-    // Stop capturing thread
-    Capture_image_thread_pt->stop();
-
-    // Free memory for capturing thread
-    delete Capture_image_thread_pt;
-    Capture_image_thread_pt = 0;
-
     // Stop process image thread
     Process_image_thread_pt->stop();
 
     // Free memory for processing image thread
     delete Process_image_thread_pt;
     Process_image_thread_pt = 0;
+
+    // Stop capturing thread
+    Capture_image_thread_pt->stop();
+
+    // Free memory for capturing thread
+    delete Capture_image_thread_pt;
+    Capture_image_thread_pt = 0;
 
     delete ui;
 }
@@ -103,10 +103,10 @@ void MainWindow::plot(const unsigned x_max, const unsigned y_max)
     // Get access to the tracker and Kalman coordinates of the first
     // object only
     QVector<QVector<double> > tracker_coord =
-            Process_image_thread_pt->tracker_coordinates();
+            Process_image_thread_pt->tracker_coordinates(0);
 
     QVector<QVector<double> > kalman_coord =
-            Process_image_thread_pt->kalman_coordinates();
+            Process_image_thread_pt->kalman_coordinates(0);
 
     // Add the current tracker coordinates to the data to plot (if
     // there are some)
@@ -202,4 +202,14 @@ void MainWindow::on_btn_start_image_processing_clicked()
 void MainWindow::on_btn_stop_image_processing_clicked()
 {
     Process_image_thread_pt->interrupt_image_processing();
+}
+
+void MainWindow::on_btn_plus_pattern_window_clicked()
+{
+    Process_image_thread_pt->plus_pattern_window();
+}
+
+void MainWindow::on_btn_minus_pattern_window_clicked()
+{
+        Process_image_thread_pt->minus_pattern_window();
 }

@@ -43,7 +43,7 @@ CCCaptureThread::CCCaptureThread(QObject *parent, const unsigned miliseconds)
 }
 
 // ===================================================================
-// Desctructor
+// Destructor
 // ===================================================================
 CCCaptureThread::~CCCaptureThread()
 {
@@ -61,10 +61,8 @@ CCCaptureThread::~CCCaptureThread()
 void CCCaptureThread::consume_new_image()
 {
     // "Serialise" this section by locking the mutex
-    std::cerr << "CCCaptureThread::consume_new_image() [TRY TO LOCK]\n";
     if (Mutex_capturing_image.tryLock())
     {
-        std::cerr << "CCCaptureThread::consume_new_image() [LOCKED]\n";
         // Check if we have a new image
         if (is_new_image_ready())
         {
@@ -77,7 +75,6 @@ void CCCaptureThread::consume_new_image()
 
         // Free mutex
         Mutex_capturing_image.unlock();
-        std::cerr << "CCCaptureThread::consume_new_image() [UNLOCKED]\n";
     }
 
 }
@@ -161,10 +158,10 @@ bool CCCaptureThread::capture_screen(cv::Mat &image)
 
         QScreen *my_screen = QApplication::primaryScreen();
         QPixmap pixmap(my_screen->grabWindow(QApplication::desktop()->winId(),
-                                            Capture_rect.x,
-                                            Capture_rect.y,
-                                            Capture_rect.width,
-                                            Capture_rect.height));
+                                             Capture_rect.x,
+                                             Capture_rect.y,
+                                             Capture_rect.width,
+                                             Capture_rect.height));
 
         // Free any content in the
         image.release();
@@ -197,11 +194,9 @@ void CCCaptureThread::run()
             // Only capture if previous image has been consumed
             if (!New_image_ready)
             {
-                std::cerr << "CCCaptureThread::run() [TRY TO LOCK]\n";
                 // "Serialise" this section by locking the mutex
                 if (Mutex_capturing_image.tryLock())
                 {
-                    std::cerr << "CCCaptureThread::run() [LOCKED]\n";
                     // Capture screen
                     New_image_ready = capture_screen(*Image_pt);
 
@@ -239,7 +234,6 @@ void CCCaptureThread::run()
 
                     // Free mutex
                     Mutex_capturing_image.unlock();
-                    std::cerr << "CCCaptureThread::run() [UNLOCKED]\n";
 
                 }
 
@@ -255,5 +249,8 @@ void CCCaptureThread::run()
     }
 
     emit finished();
+
+    // Wait while anything else ends
+    Thread.sleep(1);
 
 }

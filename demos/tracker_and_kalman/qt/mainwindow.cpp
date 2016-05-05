@@ -227,7 +227,7 @@ MainWindow::~MainWindow()
 // Draws an image in the "label" object of the ui
 void MainWindow::paint_image()
 {
-//#ifdef T_IMAGE_FROM_CAPTURE
+#ifdef T_IMAGE_FROM_CAPTURE
     //QPixmap pixmap(QPixmap::grabWindow(QWidget::winId(),0,0,400,320));
     //QPixmap pixmap(QPixmap::grabWindow(QApplication::desktop()->winId(),
     //                                   500, 500, QApplication::desktop()->width(), QApplication::desktop()->height()));
@@ -254,7 +254,7 @@ void MainWindow::paint_image()
 
     //ui->lbl_global_status->setText("<font color='red'>ERROR: Getting image</font>");
     //return;
-//#endif // #ifdef T_IMAGE_FROM_CAPTURE
+#endif // #ifdef T_IMAGE_FROM_CAPTURE
 
 #ifdef T_IMAGE_FROM_FILE
     // ----------------------------------------------------------

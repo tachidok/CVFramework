@@ -20,7 +20,7 @@ public:
                    const unsigned n_control_parameters = 0);
 
     // Desctructor
-    ~CCKalmanFilter();
+    virtual ~CCKalmanFilter();
 
     // Reset all data into the Kalman filter (let it ready to work
     // with a new set of data)

@@ -21,10 +21,16 @@
 #include "../../../src/tracker/ccopencvtracker.h"
 // -----------------------------------------------------------------------
 
+#if 0
 namespace Mouse
 {
-void callbackMouse( int event, int x, int y, int, void* );
+// -------------------------------------------------------------------
+// Mouse stuff (events over window)
+// -------------------------------------------------------------------
+// The method called when a mouse event is detected on the window
+void callbackMouseTracking( int event, int x, int y, int, void* );
 }
+#endif
 
 class CCProcessImageThread : public QObject
 {
@@ -79,6 +85,12 @@ public:
     {Do_image_processing = false;}
 
     // -------------------------------------------------------------------
+    // Mouse stuff (events over window)
+    // -------------------------------------------------------------------
+    // The method called when a mouse event is detected on the window
+    void callbackMouseTracking( int event, int x, int y, int, void* );
+
+    // -------------------------------------------------------------------
     // Visualisation stuff (painting over image)
     // -------------------------------------------------------------------
 
@@ -100,63 +112,100 @@ public:
     // Tracker stuff
     // -------------------------------------------------------------------
     // The history of the tracker coordinates for all tracked objects
-    QVector<QVector<double> > &tracker_coordinates()
+    QVector<QVector<QVector<double> > > &tracker_coordinates()
     {return Tracker_coordinates;}
 
-    // The history of the tracker coordinates for the i-th tracked object
-    QVector<double> &tracker_coordinates(const unsigned i)
+    // The history coordinates of the i-th tracked object
+    QVector<QVector<double> > &tracker_coordinates(const unsigned i)
     {return Tracker_coordinates[i];}
 
+    // The j-th coordinate history of the i-th tracked object
+    QVector<double> &tracker_coordinates(const unsigned i, const unsigned j)
+    {return Tracker_coordinates[i][j];}
+
+    // The value at time k of the j-th coordinate history of the i-th
+    // tracked object
+    double tracker_coordinates(const unsigned i,
+                               const unsigned j,
+                               const unsigned k)
+    {return Tracker_coordinates[i][j][k];}
+
     // The current x_tracker coordinates of all tracked objects
-    QVector<double> &x_tracker()
+    QVector<unsigned> &x_tracker()
     {return X_tracker;}
 
     // The current x_tracker coordinates of the i-th object
-    inline double x_tracker(const unsigned i)
+    inline unsigned x_tracker(const unsigned i)
     {return X_tracker[i];}
 
     // The current y_tracker coordinates of all tracked objects
-    QVector<double> &y_tracker()
+    QVector<unsigned> &y_tracker()
     {return Y_tracker;}
 
     // The current y_tracker coordinates of the i-th object
-    inline double y_tracker(const unsigned i)
+    inline unsigned y_tracker(const unsigned i)
     {return Y_tracker[i];}
 
     // The number of currently tracking objects
     inline unsigned n_tracker()
     {return N_trackers;}
 
+    // Increase pattern window
+    void plus_pattern_window();
+
+    // Decrease pattern window
+    void minus_pattern_window();
+
     // -------------------------------------------------------------------
     // Kalman stuff
-    // -------------------------------------------------------------------
-    // The history of the Kalman coordinates
-    QVector<QVector<double> > &kalman_coordinates()
+    // -------------------------------------------------------------------  
+    // The history of the Kalman coordinates for all tracked objects
+    QVector<QVector<QVector<double> > > &kalman_coordinates()
     {return Kalman_coordinates;}
 
-    // The history of the Kalman coordinates for the i-th object
-    QVector<double> &kalman_coordinates(const unsigned i)
+    // The history Kalman coordinates of the i-th tracked object
+    QVector<QVector<double> > &kalman_coordinates(const unsigned i)
     {return Kalman_coordinates[i];}
 
+    // The j-th coordinate Kalman history of the i-th tracked object
+    QVector<double> &kalman_coordinates(const unsigned i, const unsigned j)
+    {return Kalman_coordinates[i][j];}
+
+    // The value at time k of the j-th coordinate Kalman history of the
+    // i-th tracked object
+    double kalman_coordinates(const unsigned i,
+                              const unsigned j,
+                              const unsigned k)
+    {return Kalman_coordinates[i][j][k];}
+
     // The current x_kalman coordinates of all tracked objects
-    QVector<double> &x_kalman()
+    QVector<unsigned> &x_kalman()
     {return X_Kalman;}
 
     // The current x_kalman coordinates of the i-th object
-    inline double x_kalman(const unsigned i)
+    inline unsigned x_kalman(const unsigned i)
     {return X_Kalman[i];}
 
     // The current y_kalman coordinates of all tracked objects
-    QVector<double> &y_kalman()
+    QVector<unsigned> &y_kalman()
     {return Y_Kalman;}
 
     // The current y_kalman coordinates of the i-th object
-    inline double y_kalman(const unsigned i)
+    inline unsigned y_kalman(const unsigned i)
     {return Y_Kalman[i];}
 
     // The number of currently Kalman filters being applied
     inline unsigned n_kalman_filters()
     {return N_Kalman_filters;}
+
+    // -------------------------------------------------------------------
+    // Mouse moving stuff
+    // -------------------------------------------------------------------
+    static unsigned X_mouse;
+    static unsigned Y_mouse;
+
+    static bool Left_button_pressed;
+    static bool Right_button_pressed;
 
 protected:
 
@@ -185,18 +234,30 @@ protected:
     // The image pointer
     cv::Mat *Image_pt;
 
-    // The name of the window
+    // The name of the window that shows the tracking or output
+    // from the tracker
     char *Window_video = "CCCaptureThread::video";
+    // The name of the window that shows the processing of the image
+    char *Window_processing = "CCCaptureThread::processing";
 
     // -------------------------------------------------------------------
     // Tracker stuff
     // -------------------------------------------------------------------
-    // History of Tracker coordinates
-    QVector<QVector<double> > Tracker_coordinates;
+    // Draw the aim flag
+    bool Draw_aim;
+
+    // Do tracking
+    bool Do_tracking;
+
+    // Capture pattern
+    bool Capture_pattern;
+
+    // History of Tracker coordinates [time, x or y, value]
+    QVector<QVector<QVector<double> > > Tracker_coordinates;
 
     // Current tracker coordinates
-    QVector<double> X_tracker;
-    QVector<double> Y_tracker;
+    QVector<unsigned> X_tracker;
+    QVector<unsigned> Y_tracker;
 
     // The number of trackers to use (depending on the number
     // of detected objects)
@@ -224,12 +285,12 @@ protected:
     // -------------------------------------------------------------------
     // Kalman stuff
     // -------------------------------------------------------------------
-    // History of Kalman coordinates
-    QVector<QVector<double> > Kalman_coordinates;
+    // History of Kalman coordinates [time, x or y, value]
+    QVector<QVector<QVector<double> > > Kalman_coordinates;
 
     // Current Kalman coordinates
-    QVector<double> X_Kalman;
-    QVector<double> Y_Kalman;
+    QVector<unsigned> X_Kalman;
+    QVector<unsigned> Y_Kalman;
 
     // The number of Kalman filters to use (depending on the number
     // of detected objects)

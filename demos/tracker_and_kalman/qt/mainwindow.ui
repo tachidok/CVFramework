@@ -19,8 +19,8 @@
      <rect>
       <x>120</x>
       <y>10</y>
-      <width>640</width>
-      <height>480</height>
+      <width>400</width>
+      <height>320</height>
      </rect>
     </property>
     <property name="mouseTracking">
@@ -256,7 +256,7 @@
      <string>Current status:</string>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>452</x>
@@ -285,6 +285,7 @@
    <zorder>layoutWidget</zorder>
    <zorder>layoutWidget</zorder>
    <zorder>layoutWidget</zorder>
+   <zorder>layoutWidget</zorder>
    <zorder>label_image</zorder>
    <zorder>lbl_current_image_name_fixed</zorder>
    <zorder>lbl_current_image_name</zorder>
@@ -294,8 +295,6 @@
    <zorder>wdg_plot_y</zorder>
    <zorder>lbl_global_status</zorder>
    <zorder>lbl_global_status_lbl</zorder>
-   <zorder>lbl_lbl_kalman_velocities</zorder>
-   <zorder>lbl_status_kalman_velocities</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

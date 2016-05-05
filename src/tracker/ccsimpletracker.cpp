@@ -176,12 +176,12 @@ bool CCSimpleTracker::search_pattern(cv::Mat &image_pt,
     // --------------------------------------------------------------------
     // Return the x and y position based on the complete image
     // --------------------------------------------------------------------
-    qDebug() << "InputX: " << centroid_x << "InputY: " << centroid_y;
+    //qDebug() << "InputX: " << centroid_x << "InputY: " << centroid_y;
 
     centroid_x = centroid_x - range_w/2 + maxi;
     centroid_y = centroid_y - range_h/2 + maxj;
 
-    qDebug() << "OutputX: " << centroid_x << "OutputY: " << centroid_y;
+    //qDebug() << "OutputX: " << centroid_x << "OutputY: " << centroid_y;
 
     return true;
 

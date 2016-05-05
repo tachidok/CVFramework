@@ -86,6 +86,32 @@
      <string>Stop Image Processing</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_plus_pattern_window">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>260</y>
+      <width>171</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Plus Pattern Window</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_minus_pattern_window">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>290</y>
+      <width>171</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Minus Pattern Window</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

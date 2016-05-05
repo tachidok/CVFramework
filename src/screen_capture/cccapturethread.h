@@ -28,7 +28,7 @@ public:
     explicit CCCaptureThread(QObject *parent = 0,
                              const unsigned miliseconds = 30);
 
-    // Desctructor
+    // Destructor
     ~CCCaptureThread();
 
     // Indicate we have a new image ready

@@ -32,13 +32,21 @@ SOURCES += main.cpp\
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.cpp \
     ../../../src/kalman/cckalmanfilter.cpp \
     ../../../src/screen_capture/cccapturethread.cpp \
-    ccprocessimagethread.cpp
+    ccprocessimagethread.cpp \
+    ../../../src/tracker/catracker.cpp \
+    ../../../src/tracker/ccnormaldisttracker.cpp \
+    ../../../src/tracker/ccopencvtracker.cpp \
+    ../../../src/tracker/ccsimpletracker.cpp
 
 HEADERS  += mainwindow.h \
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.h \
     ../../../src/kalman/cckalmanfilter.h \
     ../../../src/general/general_includes.h \
     ../../../src/screen_capture/cccapturethread.h \
-    ccprocessimagethread.h
+    ccprocessimagethread.h \
+    ../../../src/tracker/catracker.h \
+    ../../../src/tracker/ccnormaldisttracker.h \
+    ../../../src/tracker/ccopencvtracker.h \
+    ../../../src/tracker/ccsimpletracker.h
 
 FORMS    += mainwindow.ui
