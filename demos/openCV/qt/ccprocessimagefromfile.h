@@ -26,6 +26,15 @@ public:
     // Free some stuff but do not kill the object
     void free_stuff();
 
+    // Clear applied process
+    void clear();
+
+    // Get access to the original image
+    cv::Mat &originalImage();
+
+    // Get access to the processed image
+    cv::Mat &processedImage();
+
 signals:
 
 public slots:
@@ -33,10 +42,12 @@ public slots:
 protected:
 
     // The storage for the captured image
-    cv::Mat Image;
+    cv::Mat OriginalImage;
+    cv::Mat ProcessedImage;
 
     // The name of the window that shows the image
-    char *Window_image = "CCProcessImageFromFile::image";
+    char *Window_original_image = "CCProcessImageFromFile::image - Original";
+    char *Window_processed_image = "CCProcessImageFromFile::image - Processed";
 
     // Image read status
     bool Image_read;

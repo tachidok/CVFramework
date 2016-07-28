@@ -51,8 +51,24 @@ protected:
     // Objects to process images
     CCProcessImageFromFile *process_image_from_file;
 
+    // Kernel size or "mask" for filters
+    unsigned Filter_kernel_size;
+
+    // Contrast and brightness global variables (ugh!)
+    double Contrast;
+    double Brightness;
+
 private slots:
     void on_btn_get_image_clicked();
+    void on_bnt_clear_clicked();
+    void on_btn_filter_normalised_clicked();
+    void on_btn_kernel_size_plus_clicked();
+    void on_btn_kernel_size_minus_clicked();
+    void on_btn_filter_gauss_clicked();
+    void on_btn_filter_median_clicked();
+    void on_sld_contrast_sliderMoved(int position);
+    void on_sld_brightness_sliderMoved(int position);
+    void on_sld_contrast_valueChanged(int value);
 };
 
 #endif // MAINWINDOW_H

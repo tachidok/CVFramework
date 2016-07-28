@@ -18,17 +18,20 @@ CCProcessImageFromFile::~CCProcessImageFromFile()
 bool CCProcessImageFromFile::read_image(std::string &image_name)
 {
     // Create and show the window where the image is shown
-    cv::namedWindow(Window_image);
+    cv::namedWindow(Window_original_image);
 
     // Load the image
-    Image = cv::imread(image_name.c_str(), CV_LOAD_IMAGE_COLOR);
+    OriginalImage = cv::imread(image_name.c_str(), CV_LOAD_IMAGE_COLOR);
 
     // Check for correct image reading
-    if(!Image.data)
+    if(!OriginalImage.data)
     {
         std::cout <<  "Could not open or find the image" << std::endl;
         return false;
     }
+
+    // Make a copy of the original image into the processed image
+    ProcessedImage = OriginalImage.clone();
 
     // The image has been read
     Image_read = true;
@@ -45,8 +48,10 @@ void CCProcessImageFromFile::show_image()
 {
     if (Image_read)
     {
-        // Just show the image
-        imshow(Window_image, Image);
+        // Just show the images
+        imshow(Window_original_image, OriginalImage);
+        imshow(Window_processed_image, ProcessedImage);
+
     }
 }
 
@@ -57,5 +62,30 @@ void CCProcessImageFromFile::free_stuff()
     Image_read = false;
 
     // Destroy the window showing the image
-    cv::destroyWindow(Window_image);
+    cv::destroyWindow(Window_original_image);
+    cv::destroyWindow(Window_processed_image);
 }
+
+// Clear applied process
+void CCProcessImageFromFile::clear()
+{
+    if (Image_read)
+    {
+        // Copy back the original image into the processed image
+        ProcessedImage = OriginalImage.clone();
+        show_image();
+    }
+}
+
+// Get access to the original image
+cv::Mat &CCProcessImageFromFile::originalImage()
+{
+    return OriginalImage;
+}
+
+// Get access to the processed image
+cv::Mat &CCProcessImageFromFile::processedImage()
+{
+    return ProcessedImage;
+}
+
