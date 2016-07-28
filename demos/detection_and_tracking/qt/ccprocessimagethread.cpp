@@ -37,7 +37,7 @@ namespace Mouse
 
 }
 
-// Initialise mnouse position and drawing variblaes
+// Initialise mouse position and drawing variables
 // -------------------------------------------------------------------
 // Mouse moving stuff
 // -------------------------------------------------------------------
