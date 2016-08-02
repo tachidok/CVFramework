@@ -1,5 +1,5 @@
-#ifndef CCCAPTURETHREAD_H
-#define CCCAPTURETHREAD_H
+#ifndef ACCAPTURETHREAD_H
+#define ACCAPTURETHREAD_H
 
 #include <QObject>
 #include <QThread>
@@ -7,16 +7,12 @@
 #include <QScreen>
 #include <QMutex>
 
-// We need to include the following two to avoid compilation errors
-#include <QApplication>
-#include <QDesktopWidget>
-
 // -----------------------------------------------------------------------
 // General includes
 #include "../general/general_includes.h"
 // -----------------------------------------------------------------------
 
-class CCCaptureThread : public QObject
+class ACCaptureThread : public QObject
 {
     Q_OBJECT
 
@@ -25,11 +21,11 @@ public:
     // Constructor, the miliseconds variable is used to specify the
     // time the thread sleeps after getting an image while others read
     // it and work on it
-    explicit CCCaptureThread(QObject *parent = 0,
+    explicit ACCaptureThread(QObject *parent = 0,
                              const unsigned miliseconds = 30);
 
     // Destructor
-    ~CCCaptureThread();
+    virtual ~ACCaptureThread();
 
     // Indicate we have a new image ready
     inline bool is_new_image_ready()
@@ -74,11 +70,6 @@ public:
     inline void stop()
     {Stop = true;}
 
-    // Set capture geometry. A cv::Rect object to define the initial
-    // 2D coordinate, the width and the height of the capture rectangule
-    void set_capture_geometry(const unsigned x, const unsigned y,
-                              const unsigned width, const unsigned height);
-
 #if 0
     // Register pointer to store captured image
     void register_image_pointer(cv::Mat *image_pt);
@@ -116,12 +107,6 @@ protected:
     // Flag to stop the thread and finish
     bool Stop;
 
-    // Geometry of capture
-    cv::Rect Capture_rect;
-
-    // Flag to indicate whether the capture region is valid or not
-    bool Capture_region_valid;
-
     // Time in miliseconds the thread gives to read the image from the
     // buffer
     const unsigned Miliseconds;
@@ -143,9 +128,10 @@ protected:
     cv::Mat Captured_image;
 
     // -------------------------------------------------------------------
-    // Capture screen stuff
+    // Capture
     // -------------------------------------------------------------------
-    bool capture_screen(cv::Mat &image);
+    // The capture function, must be implemented for each derived class
+    virtual bool capture(cv::Mat &image) = 0;
 
 signals:
 
@@ -158,4 +144,4 @@ public slots:
 
 };
 
-#endif // CCCAPTURETHREAD_H
+#endif // ACCAPTURETHREAD_H

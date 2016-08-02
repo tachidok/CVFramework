@@ -1,18 +1,16 @@
 #ifndef CCPROCESSIMAGEFROMFILE_H
 #define CCPROCESSIMAGEFROMFILE_H
 
-#include <QObject>
+// The base class
+#include "ccprocessimage.h"
 
-// -----------------------------------------------------------------------
-// General includes
-#include "../../../src/general/general_includes.h"
-// -----------------------------------------------------------------------
-
-class CCProcessImageFromFile : public QObject
+class CCProcessImageFromFile : virtual public CCProcessImage
 {
-    Q_OBJECT
+
 public:
-    explicit CCProcessImageFromFile(QObject *parent = 0);
+
+    // Constructor
+    CCProcessImageFromFile();
 
     // Destructor
     ~CCProcessImageFromFile();
@@ -29,21 +27,7 @@ public:
     // Clear applied process
     void clear();
 
-    // Get access to the original image
-    inline cv::Mat &originalImage() {return OriginalImage;}
-
-    // Get access to the processed image
-    inline cv::Mat &processedImage() {return ProcessedImage;}
-
-signals:
-
-public slots:
-
 protected:
-
-    // The storage for the captured and processed image
-    cv::Mat OriginalImage;
-    cv::Mat ProcessedImage;
 
     // The name of the window that shows the image
     char *Window_original_image = "CCProcessImageFromFile - Original";

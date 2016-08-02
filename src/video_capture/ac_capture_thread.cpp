@@ -1,9 +1,9 @@
-#include "cccapturethread.h"
+#include "ac_capture_thread.h"
 
 // ===================================================================
 // Constructor (initialise the thread)
 // ===================================================================
-CCCaptureThread::CCCaptureThread(QObject *parent, const unsigned miliseconds)
+ACCaptureThread::ACCaptureThread(QObject *parent, const unsigned miliseconds)
     : QObject(parent),
       Miliseconds(miliseconds)
 {
@@ -18,9 +18,6 @@ CCCaptureThread::CCCaptureThread(QObject *parent, const unsigned miliseconds)
 
     // The thread is not capturing when first created
     Capture = false;
-
-    // The initial capture region is not valid
-    Capture_region_valid = false;
 
 #if 0
     // Initialise the number of registered images
@@ -42,14 +39,14 @@ CCCaptureThread::CCCaptureThread(QObject *parent, const unsigned miliseconds)
 // ===================================================================
 // Destructor
 // ===================================================================
-CCCaptureThread::~CCCaptureThread()
+ACCaptureThread::~ACCaptureThread()
 { }
 
 // ===================================================================
 // Consume or read the ready image if an external image pointer
 // has been set
 // ===================================================================
-void CCCaptureThread::consume_new_image()
+void ACCaptureThread::consume_new_image()
 {
     // "Serialise" this section by locking the mutex
     if (Mutex_capturing_image.tryLock())
@@ -70,45 +67,12 @@ void CCCaptureThread::consume_new_image()
 
 }
 
-// ===================================================================
-// Set capture geometry. A cv::Rect object to define the initial
-// 2D coordinate, the width and the height of the capture rectangule
-// ===================================================================
-void CCCaptureThread::set_capture_geometry(const unsigned x,
-                                           const unsigned y,
-                                           const unsigned width,
-                                           const unsigned height)
-{
-    // Get the size of the desktop
-    int desktop_width = QApplication::desktop()->width();
-    int desktop_height = QApplication::desktop()->height();
-
-    // Is the capture region INSIDE the desktop .... ?
-    if (x + width < desktop_width &&
-            y + height < desktop_height &&
-            x + width >= 0 &&
-            y + height >= 0)
-    {
-        Capture_rect.x = x;
-        Capture_rect.y = y;
-        Capture_rect.width = width;
-        Capture_rect.height = height;
-
-        Capture_region_valid = true;
-    }
-    else
-    {
-        Capture_region_valid = false;
-    }
-
-}
-
 #if 0
 // ===================================================================
 // Register an image pointer so that the captured image is stored in
 // the pointer in addition to its displaying
 // ===================================================================
-void CCCaptureThread::register_image_pointer(cv::Mat *image_pt)
+void ACCaptureThread::register_image_pointer(cv::Mat *image_pt)
 {
     // Increase the number of registered image pointers
     N_registered_image_pointers++;
@@ -120,7 +84,7 @@ void CCCaptureThread::register_image_pointer(cv::Mat *image_pt)
 // ===================================================================
 // Unregister pointer to image
 // ===================================================================
-void CCCaptureThread::unregister_image_pointer(cv::Mat *image_pt)
+void ACCaptureThread::unregister_image_pointer(cv::Mat *image_pt)
 {
     // Get the position of the input "image_pt" pointer
     int index_to_delete = Registered_image_pt.indexOf(image_pt);
@@ -133,47 +97,9 @@ void CCCaptureThread::unregister_image_pointer(cv::Mat *image_pt)
 #endif
 
 // ===================================================================
-// The capture method, this is the one that does the magic!!!
-// ===================================================================
-bool CCCaptureThread::capture_screen(cv::Mat &image)
-{
-    if (Capture_region_valid)
-    {
-#if 0
-        QPixmap pixmap(QPixmap::grabWindow(QApplication::desktop()->winId(),
-                                           Capture_rect.x,
-                                           Capture_rect.y,
-                                           Capture_rect.width,
-                                           Capture_rect.height));
-#endif
-
-        QScreen *my_screen = QApplication::primaryScreen();
-        QPixmap pixmap(my_screen->grabWindow(QApplication::desktop()->winId(),
-                                             Capture_rect.x,
-                                             Capture_rect.y,
-                                             Capture_rect.width,
-                                             Capture_rect.height));
-
-        // Free any content in the
-        image.release();
-
-        // The image, Transfrom from QPixmap to cv::Mat ('false' argument for
-        // not cloning data into cv::Mat)
-        image = ASM::QPixmapToCvMat(pixmap);
-
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-
-}
-
-// ===================================================================
 // The method that is run when the "Thread_pt" starts
 // ===================================================================
-void CCCaptureThread::run()
+void ACCaptureThread::run()
 {
 
     // Repeat until not stop received
@@ -189,7 +115,7 @@ void CCCaptureThread::run()
                 if (Mutex_capturing_image.tryLock())
                 {
                     // Capture screen
-                    New_image_ready = capture_screen(Captured_image);
+                    New_image_ready = capture(Captured_image);
 
                     if (New_image_ready)
                     {
@@ -198,8 +124,8 @@ void CCCaptureThread::run()
                         {
                             // Resize the input image and output it in the same image
                             //cv::resize(live_image, live_image, cv::Size(640, 480));
-                            cv::namedWindow("CCCaptureThread-video");
-                            cv::imshow("CCCaptureThread-video", Captured_image);
+                            cv::namedWindow("ACCaptureThread-video");
+                            cv::imshow("ACCaptureThread-video", Captured_image);
                         }
 
 #if 0

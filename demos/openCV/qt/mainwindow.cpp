@@ -15,35 +15,28 @@ MainWindow::MainWindow(QWidget *parent) :
     // Initialize kernel size
     Filter_kernel_size = 7;
 
-    // Initialize contrast and brightness
-    Contrast = 1.0;
-    Brightness = 0.0;
-
-    // Create objects and let them ready to read or capture
-    // images
+    // ---------------------------------------------------------------
+    // Stuff to read images from file
+    // ---------------------------------------------------------------
     Process_image_from_file = new CCProcessImageFromFile();
 
     // ---------------------------------------------------------------
-    // Thread stuff
-    // ---------------------------------------------------------------
-    // Initialise and configure threads
-    // ---------------------------------------------------------------
-
+    // Stuff to read images from screen
     // ---------------------------------------------------------------
     // Create the thread to capture and display the image
-    Capture_image_thread_pt = new CCCaptureThread();
+    Capture_image_from_screen_thread_pt = new CCCaptureFromScreen();
 
     // Set the capture geometry (region of interest or ROI)
     int width_capture = 640;//160;//640;
     int height_capture = 480;//120;//480;
     int desktop_width = QApplication::desktop()->width();
     int desktop_height = QApplication::desktop()->height();
-    Capture_image_thread_pt->
+    Capture_image_from_screen_thread_pt->
             set_capture_geometry(desktop_width - width_capture - 1, 0,
                                  width_capture, height_capture);
 
     // Do not show the captured image
-    Capture_image_thread_pt->disable_image_displaying();
+    Capture_image_from_screen_thread_pt->disable_image_displaying();
 
     // ---------------------------------------------------------------
     // Initialise the image processer
@@ -52,18 +45,48 @@ MainWindow::MainWindow(QWidget *parent) :
     // Now set a pointer to the capture thread in the process image thread
     // so it can ask for a new image
     Process_image_from_screen_thread_pt->
-            set_capture_thread_pt(Capture_image_thread_pt);
+            set_capture_thread_pt(Capture_image_from_screen_thread_pt);
 
     // Get the mutex from the screen capturer and set it to the
     // image processor
     Process_image_from_screen_thread_pt->
-            set_mutex_pt(&(Capture_image_thread_pt->mutex_capturing_image()));
+            set_mutex_pt(&(Capture_image_from_screen_thread_pt->mutex_capturing_image()));
 
     // ---------------------------------------------------------------
     // Start the threads
     // ---------------------------------------------------------------
-    Capture_image_thread_pt->start_thread();
+    Capture_image_from_screen_thread_pt->start_thread();
     Process_image_from_screen_thread_pt->start_thread();
+
+    // ---------------------------------------------------------------
+    // Stuff to read images from camera
+    // ---------------------------------------------------------------
+    // Create the thread to capture and display the image
+    Capture_image_from_camera_thread_pt = new CCCaptureFromCamera();
+
+    // Do not show the captured image
+    Capture_image_from_camera_thread_pt->disable_image_displaying();
+
+    // ---------------------------------------------------------------
+    // Initialise the image processer
+    Process_image_from_camera_thread_pt = new CCProcessImageFromCamera();
+
+    // Now set a pointer to the capture thread in the process image thread
+    // so it can ask for a new image
+    Process_image_from_camera_thread_pt->
+            set_capture_thread_pt(Capture_image_from_camera_thread_pt);
+
+    // Get the mutex from the screen capturer and set it to the
+    // image processor
+    Process_image_from_camera_thread_pt->
+            set_mutex_pt(&(Capture_image_from_camera_thread_pt->mutex_capturing_image()));
+
+    // ---------------------------------------------------------------
+    // Start the threads
+    // ---------------------------------------------------------------
+    Capture_image_from_camera_thread_pt->start_thread();
+    Process_image_from_camera_thread_pt->start_thread();
+
 }
 
 MainWindow::~MainWindow()
@@ -79,11 +102,25 @@ MainWindow::~MainWindow()
     Process_image_from_screen_thread_pt = 0;
 
     // Stop capturing thread
-    Capture_image_thread_pt->stop();
+    Capture_image_from_screen_thread_pt->stop();
 
     // Free memory for capturing thread
-    delete Capture_image_thread_pt;
-    Capture_image_thread_pt = 0;
+    delete Capture_image_from_screen_thread_pt;
+    Capture_image_from_screen_thread_pt = 0;
+
+    // Stop process image thread
+    Process_image_from_camera_thread_pt->stop();
+
+    // Free memory for processing image thread
+    delete Process_image_from_camera_thread_pt;
+    Process_image_from_camera_thread_pt = 0;
+
+    // Stop capturing thread
+    Capture_image_from_camera_thread_pt->stop();
+
+    // Free memory for capturing thread
+    delete Capture_image_from_camera_thread_pt;
+    Capture_image_from_camera_thread_pt = 0;
 
     delete ui;
 }
@@ -99,12 +136,18 @@ void MainWindow::on_btn_get_image_clicked()
 
     if (Image_from_screen)
     {
+        // Start capturing
+        Capture_image_from_screen_thread_pt->interrupt_capturing();
+        Process_image_from_screen_thread_pt->interrupt_image_processing();
         Process_image_from_screen_thread_pt->free_stuff();
     }
 
     if (Image_from_camera)
     {
-
+        // Start capturing
+        Capture_image_from_camera_thread_pt->interrupt_capturing();
+        Process_image_from_camera_thread_pt->interrupt_image_processing();
+        Process_image_from_camera_thread_pt->free_stuff();
     }
 
     // Check the status of the radio buttons
@@ -127,7 +170,7 @@ void MainWindow::on_btn_get_image_clicked()
         Image_from_camera = false;
 
         // Start capturing
-        Capture_image_thread_pt->start_capturing();
+        Capture_image_from_screen_thread_pt->start_capturing();
         Process_image_from_screen_thread_pt->start_image_processing();
 
     }
@@ -136,6 +179,10 @@ void MainWindow::on_btn_get_image_clicked()
         Image_from_file = false;
         Image_from_screen = false;
         Image_from_camera = true;
+
+        // Start capturing
+        Capture_image_from_camera_thread_pt->start_capturing();
+        Process_image_from_camera_thread_pt->start_image_processing();
     }
 
 
@@ -157,7 +204,7 @@ void MainWindow::on_bnt_clear_clicked()
 
     if (Image_from_camera)
     {
-
+        Process_image_from_camera_thread_pt->clear();
     }
 
 }
@@ -188,9 +235,11 @@ void MainWindow::on_btn_filter_normalised_clicked()
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
     {
-        cv::blur(Process_image_from_file->originalImage(),
-                 Process_image_from_file->processedImage(),
-                 cv::Size( Filter_kernel_size, Filter_kernel_size ));
+        Process_image_from_file->
+                filter_kernel_size() = Filter_kernel_size;
+        Process_image_from_file->
+                apply_normalised_filter(Process_image_from_file->originalImage(),
+                                        Process_image_from_file->processedImage());
         Process_image_from_file->show_image();
     }
 
@@ -205,7 +254,11 @@ void MainWindow::on_btn_filter_normalised_clicked()
 
     if (Image_from_camera)
     {
-
+        Process_image_from_camera_thread_pt->
+                filter_kernel_size() = Filter_kernel_size;
+        Process_image_from_camera_thread_pt->disable_gaussian_filter();
+        Process_image_from_camera_thread_pt->disable_median_filter();
+        Process_image_from_camera_thread_pt->enable_normalised_filter();
     }
 
 }
@@ -215,10 +268,11 @@ void MainWindow::on_btn_filter_gauss_clicked()
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
     {
-        cv::GaussianBlur(Process_image_from_file->originalImage(),
-                         Process_image_from_file->processedImage(),
-                         cv::Size( Filter_kernel_size, Filter_kernel_size ),
-                         0, 0);
+        Process_image_from_file->
+                filter_kernel_size() = Filter_kernel_size;
+        Process_image_from_file->
+                apply_gaussian_filter(Process_image_from_file->originalImage(),
+                                      Process_image_from_file->processedImage());
         Process_image_from_file->show_image();
     }
 
@@ -233,7 +287,11 @@ void MainWindow::on_btn_filter_gauss_clicked()
 
     if (Image_from_camera)
     {
-
+        Process_image_from_camera_thread_pt->
+                filter_kernel_size() = Filter_kernel_size;
+        Process_image_from_camera_thread_pt->disable_normalised_filter();
+        Process_image_from_camera_thread_pt->disable_median_filter();
+        Process_image_from_camera_thread_pt->enable_gaussian_filter();
     }
 
 }
@@ -243,9 +301,11 @@ void MainWindow::on_btn_filter_median_clicked()
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
     {
-        cv::medianBlur(Process_image_from_file->originalImage(),
-                       Process_image_from_file->processedImage(),
-                       Filter_kernel_size);
+        Process_image_from_file->
+                filter_kernel_size() = Filter_kernel_size;
+        Process_image_from_file->
+                apply_median_filter(Process_image_from_file->originalImage(),
+                                    Process_image_from_file->processedImage());
         Process_image_from_file->show_image();
     }
 
@@ -260,16 +320,17 @@ void MainWindow::on_btn_filter_median_clicked()
 
     if (Image_from_camera)
     {
-
+        Process_image_from_camera_thread_pt->
+                filter_kernel_size() = Filter_kernel_size;
+        Process_image_from_camera_thread_pt->disable_normalised_filter();
+        Process_image_from_camera_thread_pt->disable_gaussian_filter();
+        Process_image_from_camera_thread_pt->enable_median_filter();
     }
 
 }
 
 void MainWindow::on_sld_contrast_sliderMoved(int position)
 {
-    // Temporaly store for image
-    cv::Mat tmp_image;
-
     // Scale the value of the slide
     // Get max. and min. value of slide
     const unsigned max_slide = ui->sld_contrast->maximum();
@@ -279,57 +340,64 @@ void MainWindow::on_sld_contrast_sliderMoved(int position)
     const double min_new = 1.0;
     const double scale_factor = (max_new - min_new) / (max_slide - min_slide);
 
-    Contrast = min_new + position * scale_factor;
+    const double contrast = min_new + position * scale_factor;
 
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
     {
-        // Get the image
-        tmp_image = Process_image_from_file->originalImage();
-        // Transform the image
-        tmp_image.convertTo(Process_image_from_file->processedImage(), -1,
-                            Contrast, Brightness);
+        Process_image_from_file->
+                apply_contrast(Process_image_from_file->originalImage(),
+                               Process_image_from_file->processedImage(),
+                               contrast);
         Process_image_from_file->show_image();
     }
 
     if (Image_from_screen)
     {
-
+        // Enable application of contrast
+        Process_image_from_screen_thread_pt->enable_contrast();
+        // Set the contrast
+        Process_image_from_screen_thread_pt->contrast() = contrast;
     }
 
     if (Image_from_camera)
     {
-
+        // Enable application of contrast
+        Process_image_from_camera_thread_pt->enable_contrast();
+        // Set the contrast
+        Process_image_from_camera_thread_pt->contrast() = contrast;
     }
 
 }
 
 void MainWindow::on_sld_brightness_sliderMoved(int position)
 {
-    // Temporaly store for image
-    cv::Mat tmp_image;
-
-    Brightness = position;
+    const double brightness = position;
 
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
     {
-        // Get the image
-        tmp_image = Process_image_from_file->originalImage();
-        // Transform the image
-        tmp_image.convertTo(Process_image_from_file->processedImage(), -1,
-                            Contrast, Brightness);
+        Process_image_from_file->
+                apply_brightness(Process_image_from_file->originalImage(),
+                                 Process_image_from_file->processedImage(),
+                                 brightness);
         Process_image_from_file->show_image();
     }
 
     if (Image_from_screen)
     {
-
+        // Enable application of brightness
+        Process_image_from_screen_thread_pt->enable_brightness();
+        // Set the brightness
+        Process_image_from_screen_thread_pt->brightness() = brightness;
     }
 
     if (Image_from_camera)
     {
-
+        // Enable application of brightness
+        Process_image_from_camera_thread_pt->enable_brightness();
+        // Set the brightness
+        Process_image_from_camera_thread_pt->brightness() = brightness;
     }
 
 }
@@ -340,27 +408,21 @@ void MainWindow::on_bnt_histogram_equalize_clicked()
     // Check where is the image comming from and perform the equalisation
     if (Image_from_file)
     {
-        // Convert to grayscale
-        cv::cvtColor(Process_image_from_file->processedImage(),
-                     Process_image_from_file->processedImage(),
-                     CV_BGR2GRAY);
-
-        // Apply Histogram Equalization
-        cv::equalizeHist(Process_image_from_file->processedImage(),
-                         Process_image_from_file->processedImage());
-
+        Process_image_from_file->
+                apply_histogram_equalisation(Process_image_from_file->originalImage(),
+                                             Process_image_from_file->processedImage());
         Process_image_from_file->show_image();
 
     }
 
     if (Image_from_screen)
     {
-
+        Process_image_from_screen_thread_pt->enable_histogram_equalisation();
     }
 
     if (Image_from_camera)
     {
-
+        Process_image_from_camera_thread_pt->enable_histogram_equalisation();
     }
 
 }
@@ -373,22 +435,26 @@ void MainWindow::on_btn_zoom_up_clicked()
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
     {
-        // Get the image
-        tmp_image = Process_image_from_file->processedImage();
-        // Apply zoom up to the image
-        cv::pyrUp(tmp_image, Process_image_from_file->processedImage());
-
+        Process_image_from_file->
+                zoom_in(Process_image_from_file->processedImage(),
+                        Process_image_from_file->processedImage());
         Process_image_from_file->show_image();
     }
 
     if (Image_from_screen)
     {
-
+        // First disable applied zooms
+        Process_image_from_screen_thread_pt->reset_zoom();
+        // .. then apply the desired zoom
+        Process_image_from_screen_thread_pt->enable_one_zoom_in_step();
     }
 
     if (Image_from_camera)
     {
-
+        // First disable applied zooms
+        Process_image_from_camera_thread_pt->reset_zoom();
+        // .. then apply the desired zoom
+        Process_image_from_camera_thread_pt->enable_one_zoom_in_step();
     }
 
 }
@@ -401,22 +467,26 @@ void MainWindow::on_btn_zoom_down_clicked()
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
     {
-        // Get the image
-        tmp_image = Process_image_from_file->processedImage();
-        // Apply zoom up to the image
-        cv::pyrDown(tmp_image, Process_image_from_file->processedImage());
-
+        Process_image_from_file->
+                zoom_out(Process_image_from_file->processedImage(),
+                         Process_image_from_file->processedImage());
         Process_image_from_file->show_image();
     }
 
     if (Image_from_screen)
     {
-
+        // First disable applied zooms
+        Process_image_from_screen_thread_pt->reset_zoom();
+        // .. then apply the desired zoom
+        Process_image_from_screen_thread_pt->enable_one_zoom_out_step();
     }
 
     if (Image_from_camera)
     {
-
+        // First disable applied zooms
+        Process_image_from_camera_thread_pt->reset_zoom();
+        // .. then apply the desired zoom
+        Process_image_from_camera_thread_pt->enable_one_zoom_out_step();
     }
 
 }
@@ -428,9 +498,6 @@ void MainWindow::on_btn_plus45_clicked()
 
 void MainWindow::on_horizontalSlider_sliderMoved(int position)
 {
-    // Temporaly store for image
-    cv::Mat tmp_image;
-
     // Scale the value of the slide
     // Get max. and min. value of slide
     const unsigned max_slide = ui->sld_contrast->maximum();
@@ -447,25 +514,24 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
     {
-        // Get the image
-        tmp_image = Process_image_from_file->originalImage();
-
-        // Get the rotation point
-        cv::Point center = cv::Point(tmp_image.cols*0.5, tmp_image.rows*0.5);
-        cv::Mat rotation_matrix = cv::getRotationMatrix2D(center, angle, scale);
-
-        cv::warpAffine(tmp_image, Process_image_from_file->processedImage(),
-                       rotation_matrix, tmp_image.size());
+        Process_image_from_file->
+                rotate(Process_image_from_file->originalImage(),
+                       Process_image_from_file->processedImage(),
+                       angle, scale);
         Process_image_from_file->show_image();
     }
 
     if (Image_from_screen)
     {
-
+        Process_image_from_screen_thread_pt->enable_rotation();
+        Process_image_from_screen_thread_pt->angle() = angle;
+        Process_image_from_screen_thread_pt->scale() = scale;
     }
 
     if (Image_from_camera)
     {
-
+        Process_image_from_camera_thread_pt->enable_rotation();
+        Process_image_from_camera_thread_pt->angle() = angle;
+        Process_image_from_camera_thread_pt->scale() = scale;
     }
 }

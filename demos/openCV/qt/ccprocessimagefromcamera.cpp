@@ -1,9 +1,9 @@
-#include "ccprocessimagefromscreen.h"
+#include "ccprocessimagefromcamera.h"
 
 // ===================================================================
 // Constructor
 // ===================================================================
-CCProcessImageFromScreen::CCProcessImageFromScreen(const unsigned miliseconds)
+CCProcessImageFromCamera::CCProcessImageFromCamera(const unsigned miliseconds)
     : Miliseconds(miliseconds)
 {
     // -------------------------------------------------------------------
@@ -55,7 +55,7 @@ CCProcessImageFromScreen::CCProcessImageFromScreen(const unsigned miliseconds)
 // ===================================================================
 // Destructor
 // ===================================================================
-CCProcessImageFromScreen::~CCProcessImageFromScreen()
+CCProcessImageFromCamera::~CCProcessImageFromCamera()
 {
     // Destroy the window with the original capture
     cv::destroyWindow(Window_original_video);
@@ -66,7 +66,7 @@ CCProcessImageFromScreen::~CCProcessImageFromScreen()
 // ===================================================================
 // Show image in the selected window
 // ===================================================================
-void CCProcessImageFromScreen::show_image()
+void CCProcessImageFromCamera::show_image()
 {
     // Just show the images
     imshow(Window_original_video, OriginalImage);
@@ -76,7 +76,7 @@ void CCProcessImageFromScreen::show_image()
 // ===================================================================
 // Free some stuff but do not kill the object
 // ===================================================================
-void CCProcessImageFromScreen::free_stuff()
+void CCProcessImageFromCamera::free_stuff()
 {
     // Destroy the window showing the image
     cv::destroyWindow(Window_original_video);
@@ -86,7 +86,7 @@ void CCProcessImageFromScreen::free_stuff()
 // ===================================================================
 // Clear applied process
 // ===================================================================
-void CCProcessImageFromScreen::clear()
+void CCProcessImageFromCamera::clear()
 {
     // Reset all filters
     reset_filters();
@@ -105,7 +105,7 @@ void CCProcessImageFromScreen::clear()
 // ===================================================================
 // Reset all filters (set them as disabled)
 // ===================================================================
-void CCProcessImageFromScreen::reset_filters()
+void CCProcessImageFromCamera::reset_filters()
 {
     Apply_normalised_filter = false;
     Apply_gaussian_filter = false;
@@ -115,7 +115,7 @@ void CCProcessImageFromScreen::reset_filters()
 // ===================================================================
 // Contrast and brightness
 // ===================================================================
-void CCProcessImageFromScreen::reset_contrast_and_brightness()
+void CCProcessImageFromCamera::reset_contrast_and_brightness()
 {
     disable_contrast();
     disable_brightness();
@@ -127,14 +127,14 @@ void CCProcessImageFromScreen::reset_contrast_and_brightness()
 // ===================================================================
 // Reset histogram equalisation
 // ===================================================================
-void CCProcessImageFromScreen::reset_histogram_equalisation()
+void CCProcessImageFromCamera::reset_histogram_equalisation()
 {
     Apply_histogram_equalisation = false;
 }
 // ===================================================================
 // Reset application of zooms
 // ===================================================================
-void CCProcessImageFromScreen::reset_zoom()
+void CCProcessImageFromCamera::reset_zoom()
 {
     disable_one_zoom_in_step();
     disable_one_zoom_out_step();
@@ -143,7 +143,7 @@ void CCProcessImageFromScreen::reset_zoom()
 // ===================================================================
 // Reset the application of rotations
 // ===================================================================
-void CCProcessImageFromScreen::reset_rotation()
+void CCProcessImageFromCamera::reset_rotation()
 {
     disable_rotation();
 }
@@ -151,7 +151,7 @@ void CCProcessImageFromScreen::reset_rotation()
 // ===================================================================
 // The method that is run when the "Thread_pt" starts
 // ===================================================================
-void CCProcessImageFromScreen::run()
+void CCProcessImageFromCamera::run()
 {
     // Repeat until not stop received
     while(!Stop)
@@ -163,12 +163,12 @@ void CCProcessImageFromScreen::run()
             if (Mutex_pt->tryLock())
             {
                 // Is there an image ready from the capturer
-                const bool new_image_ready = Capture_from_screen_thread_pt->is_new_image_ready();
+                const bool new_image_ready = Capture_from_camera_thread_pt->is_new_image_ready();
 
                 if (new_image_ready)
                 {
                     // Read the image
-                    OriginalImage = Capture_from_screen_thread_pt->captured_image();
+                    OriginalImage = Capture_from_camera_thread_pt->captured_image();
 
                     // Immediately copy the original image into the processed
                     // image
@@ -222,7 +222,7 @@ void CCProcessImageFromScreen::run()
                         rotate(OriginalImage, ProcessedImage, Angle, Scale);
                     }
 
-                    qDebug() << "CCProcessImageFromScreen::run()";
+                    qDebug() << "CCProcessImageFromCamera::run()";
 
                     show_image();
 
@@ -237,7 +237,7 @@ void CCProcessImageFromScreen::run()
 
                 // Once all the image processing has been done mark the image
                 // as consumed
-                Capture_from_screen_thread_pt->consume_new_image();
+                Capture_from_camera_thread_pt->consume_new_image();
 
             }
 

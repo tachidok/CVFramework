@@ -3,7 +3,7 @@
 // ===================================================================
 // Constructor
 // ===================================================================
-CCProcessImageFromFile::CCProcessImageFromFile(QObject *parent) : QObject(parent)
+CCProcessImageFromFile::CCProcessImageFromFile()
 {
     // Initialise variables
     Image_read = false;

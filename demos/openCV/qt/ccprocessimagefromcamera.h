@@ -1,29 +1,28 @@
-#ifndef CCPROCESSIMAGEFROMSCREEN_H
-#define CCPROCESSIMAGEFROMSCREEN_H
+#ifndef CCPROCESSIMAGEFROMCAMERA_H
+#define CCPROCESSIMAGEFROMCAMERA_H
 
 #include <QObject>
 #include <QThread>
 
 // -----------------------------------------------------------------------
 // Include for the screen capturer
-#include "../../../src/video_capture/cc_capture_from_screen.h"
+#include "../../../src/video_capture/cc_capture_from_camera.h"
 // -----------------------------------------------------------------------
 // The base class
 #include "ccprocessimage.h"
 
-class CCProcessImageFromScreen : public QObject, virtual public CCProcessImage
+class CCProcessImageFromCamera : public QObject, virtual public CCProcessImage
 {
     Q_OBJECT
-
 public:
 
     // Constructor. The miliseconds variable is used to specify the
     // time the thread sleeps after getting an image while others read
     // it and work on it
-    CCProcessImageFromScreen(const unsigned miliseconds = 30);
+    CCProcessImageFromCamera(const unsigned miliseconds = 30);
 
     // Destructor
-    ~CCProcessImageFromScreen();
+    ~CCProcessImageFromCamera();
 
     // -------------------------------------------------------------------
     // Image displaying
@@ -51,8 +50,8 @@ public:
     {Thread.start();}
 
     // Set the capture thread pointer
-    inline void set_capture_thread_pt(CCCaptureFromScreen *capture_thread_pt)
-    {Capture_from_screen_thread_pt = capture_thread_pt;}
+    inline void set_capture_thread_pt(CCCaptureFromCamera *capture_thread_pt)
+    {Capture_from_camera_thread_pt = capture_thread_pt;}
 
     // Set mutex to avoid reading an image when it is been written
     // by the capturer
@@ -165,7 +164,7 @@ protected:
     // Image capturing
     // -------------------------------------------------------------------
     // The screen capturer
-    CCCaptureFromScreen *Capture_from_screen_thread_pt;
+    CCCaptureFromCamera *Capture_from_camera_thread_pt;
 
     // The mutex from the screen capturer
     QMutex *Mutex_pt;
@@ -189,9 +188,9 @@ protected:
 
     // The name of the window that shows the tracking or output
     // from the tracker
-    char *Window_original_video = "CCCaptureFromScreen - Original";
+    char *Window_original_video = "CCCaptureFromCamera - Original";
     // The name of the window that shows the processing of the image
-    char *Window_processed_video = "CCCaptureFromScreen - Processed";
+    char *Window_processed_video = "CCCaptureFromCamera - Processed";
 
     // -------------------------------------------------------------------
     // Image processing
@@ -236,4 +235,4 @@ public slots:
 
 };
 
-#endif // CCPROCESSIMAGEFROMSCREEN_H
+#endif // CCPROCESSIMAGEFROMCAMERA_H

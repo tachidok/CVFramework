@@ -10,12 +10,15 @@
 // -----------------------------------------------------------------------
 // Screen capture thread
 // -----------------------------------------------------------------------
-#include "../../../src/screen_capture/cccapturethread.h"
+#include "../../../src/video_capture/cc_capture_from_screen.h"
+#include "../../../src/video_capture/cc_capture_from_camera.h"
 // -----------------------------------------------------------------------
 // Process image
 // -----------------------------------------------------------------------
+#include "ccprocessimage.h"
 #include "ccprocessimagefromfile.h"
 #include "ccprocessimagefromscreen.h"
+#include "ccprocessimagefromcamera.h"
 // -----------------------------------------------------------------------
 
 // -----------------------------------------------------------------------
@@ -48,23 +51,29 @@ protected:
     bool Image_from_camera;
     bool Image_from_screen;
 
-    // Objects to process images
+    // ---------------------------------------------------------------
+    // Stuff to process image from file
+    // ---------------------------------------------------------------
     CCProcessImageFromFile *Process_image_from_file;
 
     // Kernel size or "mask" for filters
     unsigned Filter_kernel_size;
 
-    // Contrast and brightness global variables (ugh!)
-    double Contrast;
-    double Brightness;
-
     // ---------------------------------------------------------------
-    // Thread stuff
+    // Stuff to process image from screen
     // ---------------------------------------------------------------
     // The thread in charge of capturing and displaying the image
-    CCCaptureThread *Capture_image_thread_pt;
+    CCCaptureFromScreen *Capture_image_from_screen_thread_pt;
     // The thread in charge of "eating" and processing images
     CCProcessImageFromScreen *Process_image_from_screen_thread_pt;
+
+    // ---------------------------------------------------------------
+    // Stuff to process image from camera
+    // ---------------------------------------------------------------
+    // The thread in charge of capturing and displaying the image
+    CCCaptureFromCamera *Capture_image_from_camera_thread_pt;
+    // The thread in charge of "eating" and processing images
+    CCProcessImageFromCamera *Process_image_from_camera_thread_pt;
 
 private slots:
     void on_btn_get_image_clicked();

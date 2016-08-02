@@ -29,13 +29,21 @@ LIBS += -L/usr/local/lib -lopencv_stitching -lopencv_superres\
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-     ../../../src/screen_capture/cccapturethread.cpp \
+     ../../../src/video_capture/ac_capture_thread.cpp \
     ccprocessimagefromfile.cpp \
-    ccprocessimagefromscreen.cpp
+    ccprocessimagefromscreen.cpp \
+    ccprocessimage.cpp \
+    ../../../src/video_capture/cc_capture_from_screen.cpp \
+    ../../../src/video_capture/cc_capture_from_camera.cpp \
+    ccprocessimagefromcamera.cpp
 
 HEADERS  += mainwindow.h \
-    ../../../src/screen_capture/cccapturethread.h \
+    ../../../src/video_capture/ac_capture_thread.h \
     ccprocessimagefromfile.h \
-    ccprocessimagefromscreen.h
+    ccprocessimagefromscreen.h \
+    ccprocessimage.h \
+    ../../../src/video_capture/cc_capture_from_screen.h \
+    ../../../src/video_capture/cc_capture_from_camera.h \
+    ccprocessimagefromcamera.h
 
 FORMS    += mainwindow.ui
