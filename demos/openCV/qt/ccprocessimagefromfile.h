@@ -30,10 +30,10 @@ public:
     void clear();
 
     // Get access to the original image
-    cv::Mat &originalImage();
+    inline cv::Mat &originalImage() {return OriginalImage;}
 
     // Get access to the processed image
-    cv::Mat &processedImage();
+    inline cv::Mat &processedImage() {return ProcessedImage;}
 
 signals:
 
@@ -41,13 +41,13 @@ public slots:
 
 protected:
 
-    // The storage for the captured image
+    // The storage for the captured and processed image
     cv::Mat OriginalImage;
     cv::Mat ProcessedImage;
 
     // The name of the window that shows the image
-    char *Window_original_image = "CCProcessImageFromFile::image - Original";
-    char *Window_processed_image = "CCProcessImageFromFile::image - Processed";
+    char *Window_original_image = "CCProcessImageFromFile - Original";
+    char *Window_processed_image = "CCProcessImageFromFile - Processed";
 
     // Image read status
     bool Image_read;

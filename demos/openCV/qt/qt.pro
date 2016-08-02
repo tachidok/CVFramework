@@ -29,9 +29,13 @@ LIBS += -L/usr/local/lib -lopencv_stitching -lopencv_superres\
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    ccprocessimagefromfile.cpp
+     ../../../src/screen_capture/cccapturethread.cpp \
+    ccprocessimagefromfile.cpp \
+    ccprocessimagefromscreen.cpp
 
 HEADERS  += mainwindow.h \
-    ccprocessimagefromfile.h
+    ../../../src/screen_capture/cccapturethread.h \
+    ccprocessimagefromfile.h \
+    ccprocessimagefromscreen.h
 
 FORMS    += mainwindow.ui

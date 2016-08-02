@@ -15,7 +15,7 @@
 // Process image
 // -----------------------------------------------------------------------
 #include "ccprocessimagefromfile.h"
-//#include "ccprocessimagethread.h"
+#include "ccprocessimagefromscreen.h"
 // -----------------------------------------------------------------------
 
 // -----------------------------------------------------------------------
@@ -49,7 +49,7 @@ protected:
     bool Image_from_screen;
 
     // Objects to process images
-    CCProcessImageFromFile *process_image_from_file;
+    CCProcessImageFromFile *Process_image_from_file;
 
     // Kernel size or "mask" for filters
     unsigned Filter_kernel_size;
@@ -57,6 +57,14 @@ protected:
     // Contrast and brightness global variables (ugh!)
     double Contrast;
     double Brightness;
+
+    // ---------------------------------------------------------------
+    // Thread stuff
+    // ---------------------------------------------------------------
+    // The thread in charge of capturing and displaying the image
+    CCCaptureThread *Capture_image_thread_pt;
+    // The thread in charge of "eating" and processing images
+    CCProcessImageFromScreen *Process_image_from_screen_thread_pt;
 
 private slots:
     void on_btn_get_image_clicked();
@@ -69,6 +77,11 @@ private slots:
     void on_sld_contrast_sliderMoved(int position);
     void on_sld_brightness_sliderMoved(int position);
     void on_sld_contrast_valueChanged(int value);
+    void on_bnt_histogram_equalize_clicked();
+    void on_btn_zoom_up_clicked();
+    void on_btn_zoom_down_clicked();
+    void on_btn_plus45_clicked();
+    void on_horizontalSlider_sliderMoved(int position);
 };
 
 #endif // MAINWINDOW_H

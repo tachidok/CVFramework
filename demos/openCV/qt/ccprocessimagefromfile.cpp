@@ -1,20 +1,26 @@
 #include "ccprocessimagefromfile.h"
 
+// ===================================================================
 // Constructor
+// ===================================================================
 CCProcessImageFromFile::CCProcessImageFromFile(QObject *parent) : QObject(parent)
 {
     // Initialise variables
     Image_read = false;
 }
 
+// ===================================================================
 // Destructor
+// ===================================================================
 CCProcessImageFromFile::~CCProcessImageFromFile()
 {
     // Free image
     free_stuff();
 }
 
+// ===================================================================
 // Read the image from file
+// ===================================================================
 bool CCProcessImageFromFile::read_image(std::string &image_name)
 {
     // Create and show the window where the image is shown
@@ -43,7 +49,9 @@ bool CCProcessImageFromFile::read_image(std::string &image_name)
 
 }
 
- // Show image in the selected window
+// ===================================================================
+// Show image in the selected window
+// ===================================================================
 void CCProcessImageFromFile::show_image()
 {
     if (Image_read)
@@ -55,7 +63,9 @@ void CCProcessImageFromFile::show_image()
     }
 }
 
+// ===================================================================
 // Free some stuff but do not kill the object
+// ===================================================================
 void CCProcessImageFromFile::free_stuff()
 {
     // Set as image not read
@@ -66,7 +76,9 @@ void CCProcessImageFromFile::free_stuff()
     cv::destroyWindow(Window_processed_image);
 }
 
+// ===================================================================
 // Clear applied process
+// ===================================================================
 void CCProcessImageFromFile::clear()
 {
     if (Image_read)
@@ -76,16 +88,3 @@ void CCProcessImageFromFile::clear()
         show_image();
     }
 }
-
-// Get access to the original image
-cv::Mat &CCProcessImageFromFile::originalImage()
-{
-    return OriginalImage;
-}
-
-// Get access to the processed image
-cv::Mat &CCProcessImageFromFile::processedImage()
-{
-    return ProcessedImage;
-}
-

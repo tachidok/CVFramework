@@ -73,10 +73,10 @@ CCProcessImageThread::CCProcessImageThread(QObject *parent,
     // Connect the signal from the thread to the slots of this
     // object
     connect(&Thread, SIGNAL(started()), this, SLOT(run()));
-    connect(this, SIGNAL(stop()), &Thread, SLOT(quit()));
+    connect(this, SIGNAL(finished()), &Thread, SLOT(quit()));
     connect(&Thread, SIGNAL(finished()), this, SLOT(deleteLater()));
     connect(&Thread, SIGNAL(finished()), &Thread, SLOT(deleteLater()));
-    connect(this, SIGNAL(stop()), this, SLOT(deleteLater()));
+    connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 
     // Move to thread
     moveToThread(&Thread);
@@ -220,7 +220,8 @@ void CCProcessImageThread::run()
                 if (new_image_ready)
                 {
                     // Read the image
-                    Image_pt = Capture_thread_pt->image_pt();
+                    //Image_pt = Capture_thread_pt->image_pt();
+                    Image_pt = Capture_thread_pt->captured_image();
 
                     // Check whether we should stop tracking
                     if (Right_button_pressed)

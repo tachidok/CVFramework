@@ -35,8 +35,8 @@ public:
     inline bool is_new_image_ready()
     {return New_image_ready;}
 
-    inline cv::Mat *image_pt()
-    {return Image_pt;}
+    inline cv::Mat &captured_image()
+    {return Captured_image;}
 
     // Consume or read the ready image if an external image pointer
     // has been set
@@ -138,9 +138,9 @@ protected:
     QVector<cv::Mat*> Registered_image_pt;
 #endif
 
-    // The image pointer where to store the image, if there are
-    // registered objects then they read from this image
-    cv::Mat *Image_pt;
+    // The storage for the image, if there are registered objects then
+    // they read from this image
+    cv::Mat Captured_image;
 
     // -------------------------------------------------------------------
     // Capture screen stuff

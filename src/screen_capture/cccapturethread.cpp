@@ -27,16 +27,13 @@ CCCaptureThread::CCCaptureThread(QObject *parent, const unsigned miliseconds)
     N_registered_image_pointers = 0;
 #endif
 
-    // The image is set to nothing
-    Image_pt = new cv::Mat();
-
     // Connect the signal from the thread to the slots of this
     // object
     connect(&Thread, SIGNAL(started()), this, SLOT(run()));
-    connect(this, SIGNAL(stop()), &Thread, SLOT(quit()));
+    connect(this, SIGNAL(finished()), &Thread, SLOT(quit()));
     connect(&Thread, SIGNAL(finished()), this, SLOT(deleteLater()));
     connect(&Thread, SIGNAL(finished()), &Thread, SLOT(deleteLater()));
-    connect(this, SIGNAL(stop()), this, SLOT(deleteLater()));
+    connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 
     // Move to thread
     moveToThread(&Thread);
@@ -46,13 +43,7 @@ CCCaptureThread::CCCaptureThread(QObject *parent, const unsigned miliseconds)
 // Destructor
 // ===================================================================
 CCCaptureThread::~CCCaptureThread()
-{
-    // Release data from Image_pt
-    if (Image_pt != 0)
-    {
-        delete Image_pt;
-    }
-}
+{ }
 
 // ===================================================================
 // Consume or read the ready image if an external image pointer
@@ -198,7 +189,7 @@ void CCCaptureThread::run()
                 if (Mutex_capturing_image.tryLock())
                 {
                     // Capture screen
-                    New_image_ready = capture_screen(*Image_pt);
+                    New_image_ready = capture_screen(Captured_image);
 
                     if (New_image_ready)
                     {
@@ -208,7 +199,7 @@ void CCCaptureThread::run()
                             // Resize the input image and output it in the same image
                             //cv::resize(live_image, live_image, cv::Size(640, 480));
                             cv::namedWindow("CCCaptureThread-video");
-                            cv::imshow("CCCaptureThread-video", *Image_pt);
+                            cv::imshow("CCCaptureThread-video", Captured_image);
                         }
 
 #if 0
