@@ -161,8 +161,22 @@ public:
     // Disable the application of a personalised filter
     inline void disable_personalised_filter(){Apply_personalised_filter=false;}
 
+    // Set canny filter threshold
+    double &low_threshold_canny_filter(){return Low_threshold_canny_filter;}
+
     // Reset the application of a personalised filter
     void reset_personalised_filter();
+
+    // -------------------------------------------------------------------
+    // Canny filter
+    // -------------------------------------------------------------------
+    // Enable application of Canny filter
+    inline void enable_canny_filter(){Apply_canny_filter=true;}
+    // Disable application of Canny filter
+    inline void disable_canny_filter(){Apply_canny_filter=false;}
+
+    // Reset the application of canny filter
+    void reset_canny_filter();
 
 protected:
 
@@ -233,6 +247,13 @@ protected:
     // Personalised filter
     // -------------------------------------------------------------------
     bool Apply_personalised_filter;
+
+    // -------------------------------------------------------------------
+    // Canny filter
+    // -------------------------------------------------------------------
+    bool Apply_canny_filter;
+    double Low_threshold_canny_filter;
+
 
 signals:
 

@@ -133,7 +133,7 @@ void CCProcessImage::apply_personalised_filter(cv::Mat &input_image,
     Kernel = kernel.clone();
 
     // Convert the image to grayscale
-    //cvtColor(input_image, output_image,CV_BGR2GRAY);
+    cvtColor(input_image, output_image,CV_BGR2GRAY);
 
     // Image depth (same depth as source image)
     int depth =  -1;

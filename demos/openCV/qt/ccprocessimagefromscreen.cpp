@@ -53,6 +53,9 @@ CCProcessImageFromScreen::CCProcessImageFromScreen(const unsigned miliseconds)
     // Do not apply personalised filter
     reset_personalised_filter();
 
+    // Reset canny filter
+    reset_canny_filter();
+
 }
 
 // ===================================================================
@@ -103,6 +106,8 @@ void CCProcessImageFromScreen::clear()
     reset_rotation();
     // Reset personalied filter
     reset_personalised_filter();
+    // Reset canny filter
+    reset_canny_filter();
     // Copy back the original image into the processed image
     ProcessedImage = OriginalImage.clone();
 }
@@ -158,6 +163,15 @@ void CCProcessImageFromScreen::reset_rotation()
 void CCProcessImageFromScreen::reset_personalised_filter()
 {
     disable_personalised_filter();
+}
+
+// ===================================================================
+// Reset the application of canny filter
+// ===================================================================
+void CCProcessImageFromScreen::reset_canny_filter()
+{
+    disable_canny_filter();
+    Low_threshold_canny_filter = 1.0;
 }
 
 // ===================================================================
@@ -231,6 +245,13 @@ void CCProcessImageFromScreen::run()
                     if (Apply_personalised_filter)
                     {
                         apply_personalised_filter(OriginalImage, ProcessedImage, Kernel);
+                    }
+
+                    if (Apply_canny_filter)
+                    {
+                        canny_edge_detector(OriginalImage,
+                                            ProcessedImage,
+                                            Low_threshold_canny_filter);
                     }
 
                     qDebug() << "CCProcessImageFromScreen::run()";

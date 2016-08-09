@@ -579,52 +579,10 @@ void MainWindow::on_sld_zoom_valueChanged(int value)
 
 void MainWindow::on_btn_my_filter_clicked()
 {
-    // Create the kernel
-    cv::Mat kernel;
-#if 0
-    const unsigned kernel_size = 3;
-
-    kernel = cv::Mat::zeros(kernel_size, kernel_size, CV_32F);
-    kernel.at<uchar>(0, 0) = 2;
-    kernel.at<uchar>(0, 1) = 2;
-    kernel.at<uchar>(0, 2) = 2;
-    kernel.at<uchar>(0, 3) = 2;
-    kernel.at<uchar>(0, 4) = 2;
-    kernel.at<uchar>(0, 5) = 2;
-    kernel.at<uchar>(0, 6) = 2;
-    kernel.at<uchar>(0, 7) = 2;
-    kernel.at<uchar>(0, 8) = 2;
-    kernel.at<uchar>(0, 9) = 2;
-    kernel.at<uchar>(0, 10) = 2;
-    kernel.at<uchar>(0, 11) = 2;
-    kernel.at<uchar>(1, 0) = 0;
-    kernel.at<uchar>(1, 1) = 0;
-    kernel.at<uchar>(1, 2) = 0;
-    kernel.at<uchar>(1, 3) = 0;
-    kernel.at<uchar>(1, 4) = 0;
-    kernel.at<uchar>(1, 5) = 0;
-    kernel.at<uchar>(1, 6) = 0;
-    kernel.at<uchar>(1, 7) = 0;
-    kernel.at<uchar>(1, 8) = 0;
-    kernel.at<uchar>(1, 9) = 0;
-    kernel.at<uchar>(1, 10) = 0;
-    kernel.at<uchar>(1, 11) = 0;
-    kernel.at<uchar>(2, 0) = 2;
-    kernel.at<uchar>(2, 1) = 2;
-    kernel.at<uchar>(2, 2) = 2;
-    kernel.at<uchar>(2, 3) = 2;
-    kernel.at<uchar>(2, 4) = 2;
-    kernel.at<uchar>(2, 5) = 2;
-    kernel.at<uchar>(2, 6) = 2;
-    kernel.at<uchar>(2, 7) = 2;
-    kernel.at<uchar>(2, 8) = 2;
-    kernel.at<uchar>(2, 9) = 2;
-    kernel.at<uchar>(2, 10) = 2;
-    kernel.at<uchar>(2, 11) = 2;
-#else
-    const unsigned kernel_size = 3 + 2*1;
-    kernel = cv::Mat::ones( kernel_size, kernel_size, CV_32F )/ (float)(kernel_size*kernel_size);
-#endif
+    // Create the kernel  
+    cv::Mat kernel = (cv::Mat_<char>(3,3) <<  0, -1,  0,
+                                             -1,  5, -1,
+                                              0, -1,  0);
 
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
@@ -675,13 +633,15 @@ void MainWindow::on_sld_canny_threshold_valueChanged(int value)
 
     if (Image_from_screen)
     {
-        Process_image_from_screen_thread_pt->enable_zoom();
-        Process_image_from_screen_thread_pt->scale() = low_threshold;
+        Process_image_from_screen_thread_pt->
+                low_threshold_canny_filter() = low_threshold;
+        Process_image_from_screen_thread_pt->enable_canny_filter();
     }
 
     if (Image_from_camera)
     {
-        Process_image_from_camera_thread_pt->enable_zoom();
-        Process_image_from_camera_thread_pt->scale() = low_threshold;
+        Process_image_from_camera_thread_pt->
+                low_threshold_canny_filter() = low_threshold;
+        Process_image_from_camera_thread_pt->enable_canny_filter();
     }
 }
