@@ -72,10 +72,8 @@ public:
     // -------------------------------------------------------------------
     // Zoom
     // -------------------------------------------------------------------
-    // Apply zoom in
-    void zoom_in(cv::Mat &input_image, cv::Mat &output_image);
-    // Apply zoom out
-    void zoom_out(cv::Mat &input_image, cv::Mat &output_image);
+    // Apply zoom
+    void zoom(cv::Mat &input_image, cv::Mat &output_image, const double zoom);
 
     // -------------------------------------------------------------------
     // Rotations
@@ -83,6 +81,23 @@ public:
     // Rotate an image
     void rotate(cv::Mat &input_image, cv::Mat &output_image,
                 const double angle, const double scale);
+
+    // -------------------------------------------------------------------
+    // Apply personalised filter
+    // -------------------------------------------------------------------
+    void apply_personalised_filter(cv::Mat &input_image,
+                                   cv::Mat &output_image,
+                                   cv::Mat &kernel);
+
+    // Set Kernel for personalised filter
+    inline cv::Mat &kernel(){return Kernel;}
+
+    // -------------------------------------------------------------------
+    // Canny edge detector
+    // -------------------------------------------------------------------
+    void canny_edge_detector(cv::Mat &input_image,
+                             cv::Mat &output_image,
+                             const double threshold);
 
     // Set the scale factor for rotation
     inline double &scale(){return Scale;}
@@ -116,6 +131,11 @@ protected:
     double Scale;
     // The rotation angle
     double Angle;
+
+    // -------------------------------------------------------------------
+    // Kernel for filters
+    // -------------------------------------------------------------------
+    cv::Mat Kernel;
 
 };
 

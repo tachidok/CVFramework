@@ -132,17 +132,11 @@ public:
     // -------------------------------------------------------------------
     // Zoom
     // -------------------------------------------------------------------
-    // Enable the application of one and only one zoom in step
-    inline void enable_one_zoom_in_step(){Apply_one_zoom_in_step = true;}
+    // Enable the application of zoom
+    inline void enable_zoom(){Apply_zoom = true;}
 
-    // Disable the application of one zoom in
-    inline void disable_one_zoom_in_step(){Apply_one_zoom_in_step = false;}
-
-    // Enable the application of one and only one zoom out step
-    inline void enable_one_zoom_out_step(){Apply_one_zoom_out_step = true;}
-
-    // Disable the application of one zoom out
-    inline void disable_one_zoom_out_step(){Apply_one_zoom_out_step = false;}
+    // Disable the application of zoom
+    inline void disable_zoom(){Apply_zoom = false;}
 
     // Reset application of zooms
     void reset_zoom();
@@ -157,6 +151,17 @@ public:
 
     // Reset the application of rotations
     void reset_rotation();
+
+    // -------------------------------------------------------------------
+    // Personalised filter
+    // -------------------------------------------------------------------
+    // Enable the application of a personalised filter
+    inline void enable_personalised_filter(){Apply_personalised_filter=true;}
+    // Disable the application of a personalised filter
+    inline void disable_personalised_filter(){Apply_personalised_filter=false;}
+
+    // Reset the application of a personalised filter
+    void reset_personalised_filter();
 
 protected:
 
@@ -216,13 +221,17 @@ protected:
     // -------------------------------------------------------------------
     // Zoom
     // -------------------------------------------------------------------
-    bool Apply_one_zoom_in_step;
-    bool Apply_one_zoom_out_step;
+    bool Apply_zoom;
 
     // -------------------------------------------------------------------
     // Rotations
     // -------------------------------------------------------------------
     bool Apply_rotation;
+
+    // -------------------------------------------------------------------
+    // Personalised filter
+    // -------------------------------------------------------------------
+    bool Apply_personalised_filter;
 
 signals:
 
