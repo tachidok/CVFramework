@@ -580,9 +580,25 @@ void MainWindow::on_sld_zoom_valueChanged(int value)
 void MainWindow::on_btn_my_filter_clicked()
 {
     // Create the kernel  
-    cv::Mat kernel = (cv::Mat_<char>(3,3) <<  0, -1,  0,
-                                             -1,  5, -1,
-                                              0, -1,  0);
+    //cv::Mat kernel = (cv::Mat_<char>(3,3) <<  0, -1,  0,
+    //                                         -1,  5, -1,
+    //                                          0, -1,  0);
+
+    //cv::Mat kernel = (cv::Mat_<char>(3,3) <<  -1, -2,  -1,
+    //                                          0,  0,  0,
+    //                                          1, 2,  1);
+
+    cv::Mat kernel = (cv::Mat_<char>(3,3) <<  -1, 0,  1,
+                                              -2,  0,  2,
+                                              -1, 0,  1);
+
+    //cv::Mat kernel = (cv::Mat_<char>(3,3) <<  -3, -10,  -3,
+    //                                          0,  0,  0,
+    //                                          3, 10,  3);
+
+    //cv::Mat kernel = (cv::Mat_<char>(3,3) <<  -3, 0,  3,
+    //                                          -10,  0,  10,
+    //                                          -3, 0,  3);
 
     // Check where is the image comming from and apply the filter
     if (Image_from_file)
@@ -614,7 +630,7 @@ void MainWindow::on_sld_canny_threshold_valueChanged(int value)
     const unsigned max_slide = ui->sld_canny_threshold->maximum();
     const unsigned min_slide = ui->sld_canny_threshold->minimum();
 
-    const double max_new = 10.0;
+    const double max_new = 100.0;
     const double min_new = 1.0;
     const double scale_factor = (max_new - min_new) / (max_slide - min_slide);
 

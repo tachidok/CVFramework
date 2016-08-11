@@ -74,6 +74,7 @@ void CCProcessImageFromFile::free_stuff()
     // Destroy the window showing the image
     cv::destroyWindow(Window_original_image);
     cv::destroyWindow(Window_processed_image);
+
 }
 
 // ===================================================================
