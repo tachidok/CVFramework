@@ -50,6 +50,12 @@ CCProcessImageFromScreen::CCProcessImageFromScreen(const unsigned miliseconds)
     // Do not apply rotations
     reset_rotation();
 
+    // Do not apply personalised filter
+    reset_personalised_filter();
+
+    // Reset canny filter
+    reset_canny_filter();
+
 }
 
 // ===================================================================
@@ -98,6 +104,10 @@ void CCProcessImageFromScreen::clear()
     reset_zoom();
     // Reset rotations
     reset_rotation();
+    // Reset personalied filter
+    reset_personalised_filter();
+    // Reset canny filter
+    reset_canny_filter();
     // Copy back the original image into the processed image
     ProcessedImage = OriginalImage.clone();
 }
@@ -136,8 +146,7 @@ void CCProcessImageFromScreen::reset_histogram_equalisation()
 // ===================================================================
 void CCProcessImageFromScreen::reset_zoom()
 {
-    disable_one_zoom_in_step();
-    disable_one_zoom_out_step();
+    disable_zoom();
 }
 
 // ===================================================================
@@ -146,6 +155,23 @@ void CCProcessImageFromScreen::reset_zoom()
 void CCProcessImageFromScreen::reset_rotation()
 {
     disable_rotation();
+}
+
+// ===================================================================
+// Reset the application of a personalised filter
+// ===================================================================
+void CCProcessImageFromScreen::reset_personalised_filter()
+{
+    disable_personalised_filter();
+}
+
+// ===================================================================
+// Reset the application of canny filter
+// ===================================================================
+void CCProcessImageFromScreen::reset_canny_filter()
+{
+    disable_canny_filter();
+    Low_threshold_canny_filter = 1.0;
 }
 
 // ===================================================================
@@ -205,21 +231,27 @@ void CCProcessImageFromScreen::run()
                         apply_histogram_equalisation(OriginalImage, ProcessedImage);
                     }
 
-                    if (Apply_one_zoom_in_step)
+                    if (Apply_zoom)
                     {
                         // Apply the zoom
-                        zoom_in(OriginalImage, ProcessedImage);
-                    }
-
-                    if (Apply_one_zoom_out_step)
-                    {
-                        // Apply the zoom
-                        zoom_out(OriginalImage, ProcessedImage);
+                        zoom(OriginalImage, ProcessedImage, Scale);
                     }
 
                     if (Apply_rotation)
                     {
                         rotate(OriginalImage, ProcessedImage, Angle, Scale);
+                    }
+
+                    if (Apply_personalised_filter)
+                    {
+                        apply_personalised_filter(OriginalImage, ProcessedImage, Kernel);
+                    }
+
+                    if (Apply_canny_filter)
+                    {
+                        canny_edge_detector(OriginalImage,
+                                            ProcessedImage,
+                                            Low_threshold_canny_filter);
                     }
 
                     qDebug() << "CCProcessImageFromScreen::run()";

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>341</height>
+    <height>833</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -343,7 +343,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>200</y>
+      <y>210</y>
       <width>121</width>
       <height>71</height>
      </rect>
@@ -385,9 +385,9 @@
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>200</y>
-      <width>81</width>
-      <height>71</height>
+      <y>290</y>
+      <width>241</width>
+      <height>81</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -400,38 +400,37 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>0</y>
-       <width>71</width>
+       <y>10</y>
+       <width>221</width>
        <height>71</height>
       </rect>
      </property>
      <property name="title">
       <string>Zoom</string>
      </property>
-     <widget class="QPushButton" name="btn_zoom_up">
+     <widget class="QSlider" name="sld_zoom">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>10</x>
         <y>30</y>
-        <width>31</width>
-        <height>27</height>
+        <width>211</width>
+        <height>29</height>
        </rect>
       </property>
-      <property name="text">
-       <string>+</string>
+      <property name="singleStep">
+       <number>10</number>
       </property>
-     </widget>
-     <widget class="QPushButton" name="btn_zoom_down">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>30</y>
-        <width>31</width>
-        <height>27</height>
-       </rect>
+      <property name="value">
+       <number>25</number>
       </property>
-      <property name="text">
-       <string>-</string>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="tickPosition">
+       <enum>QSlider::TicksBelow</enum>
+      </property>
+      <property name="tickInterval">
+       <number>10</number>
       </property>
      </widget>
     </widget>
@@ -439,9 +438,9 @@
    <widget class="QFrame" name="frame_6">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>200</y>
-      <width>151</width>
+      <x>150</x>
+      <y>210</y>
+      <width>241</width>
       <height>71</height>
      </rect>
     </property>
@@ -456,30 +455,149 @@
       <rect>
        <x>10</x>
        <y>0</y>
-       <width>131</width>
+       <width>221</width>
        <height>71</height>
       </rect>
      </property>
      <property name="title">
-      <string>Rotations</string>
+      <string>Rotation</string>
      </property>
      <widget class="QSlider" name="horizontalSlider">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>111</width>
+        <width>211</width>
         <height>29</height>
        </rect>
       </property>
       <property name="singleStep">
-       <number>12</number>
+       <number>10</number>
       </property>
       <property name="value">
        <number>0</number>
       </property>
       <property name="sliderPosition">
        <number>0</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="tickPosition">
+       <enum>QSlider::TicksBelow</enum>
+      </property>
+      <property name="tickInterval">
+       <number>10</number>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="Line" name="line_2">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>191</y>
+      <width>371</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="Line" name="line_3">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>370</y>
+      <width>371</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QFrame" name="frame_7">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>390</y>
+      <width>161</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QGroupBox" name="gbx_personalised_filter">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>0</y>
+       <width>141</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Personalised filter</string>
+     </property>
+     <widget class="QPushButton" name="btn_my_filter">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>121</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Apply my filter</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="frame_8">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>470</y>
+      <width>371</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QGroupBox" name="gbx_edge_detection">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>351</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Edge detection</string>
+     </property>
+     <widget class="QSlider" name="sld_canny_threshold">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>341</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="singleStep">
+       <number>10</number>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>

@@ -91,6 +91,9 @@ private slots:
     void on_btn_zoom_down_clicked();
     void on_btn_plus45_clicked();
     void on_horizontalSlider_sliderMoved(int position);
+    void on_sld_zoom_valueChanged(int value);
+    void on_btn_my_filter_clicked();
+    void on_sld_canny_threshold_valueChanged(int value);
 };
 
 #endif // MAINWINDOW_H

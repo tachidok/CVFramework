@@ -429,6 +429,7 @@ void MainWindow::on_bnt_histogram_equalize_clicked()
 
 void MainWindow::on_btn_zoom_up_clicked()
 {
+#if 0
     // Temporaly store for image
     cv::Mat tmp_image;
 
@@ -456,11 +457,12 @@ void MainWindow::on_btn_zoom_up_clicked()
         // .. then apply the desired zoom
         Process_image_from_camera_thread_pt->enable_one_zoom_in_step();
     }
-
+#endif
 }
 
 void MainWindow::on_btn_zoom_down_clicked()
 {
+#if 0
     // Temporaly store for image
     cv::Mat tmp_image;
 
@@ -488,7 +490,7 @@ void MainWindow::on_btn_zoom_down_clicked()
         // .. then apply the desired zoom
         Process_image_from_camera_thread_pt->enable_one_zoom_out_step();
     }
-
+#endif
 }
 
 void MainWindow::on_btn_plus45_clicked()
@@ -533,5 +535,129 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
         Process_image_from_camera_thread_pt->enable_rotation();
         Process_image_from_camera_thread_pt->angle() = angle;
         Process_image_from_camera_thread_pt->scale() = scale;
+    }
+
+}
+
+void MainWindow::on_sld_zoom_valueChanged(int value)
+{
+    // Scale the value of the slide
+    // Get max. and min. value of slide
+    const unsigned max_slide = ui->sld_zoom->maximum();
+    const unsigned min_slide = ui->sld_zoom->minimum();
+
+    const double max_new = 3.0;
+    const double min_new = 0.5;
+    const double scale_factor = (max_new - min_new) / (max_slide - min_slide);
+
+    // Set the zoom
+    const double zoom = min_new + value * scale_factor;
+
+    // Check where is the image comming from and apply the filter
+    if (Image_from_file)
+    {
+        Process_image_from_file->
+                zoom(Process_image_from_file->originalImage(),
+                     Process_image_from_file->processedImage(),
+                     zoom);
+        Process_image_from_file->show_image();
+    }
+
+    if (Image_from_screen)
+    {
+        Process_image_from_screen_thread_pt->enable_zoom();
+        Process_image_from_screen_thread_pt->scale() = zoom;
+    }
+
+    if (Image_from_camera)
+    {
+        Process_image_from_camera_thread_pt->enable_zoom();
+        Process_image_from_camera_thread_pt->scale() = zoom;
+    }
+
+}
+
+void MainWindow::on_btn_my_filter_clicked()
+{
+    // Create the kernel  
+    //cv::Mat kernel = (cv::Mat_<char>(3,3) <<  0, -1,  0,
+    //                                         -1,  5, -1,
+    //                                          0, -1,  0);
+
+    //cv::Mat kernel = (cv::Mat_<char>(3,3) <<  -1, -2,  -1,
+    //                                          0,  0,  0,
+    //                                          1, 2,  1);
+
+    cv::Mat kernel = (cv::Mat_<char>(3,3) <<  -1, 0,  1,
+                                              -2,  0,  2,
+                                              -1, 0,  1);
+
+    //cv::Mat kernel = (cv::Mat_<char>(3,3) <<  -3, -10,  -3,
+    //                                          0,  0,  0,
+    //                                          3, 10,  3);
+
+    //cv::Mat kernel = (cv::Mat_<char>(3,3) <<  -3, 0,  3,
+    //                                          -10,  0,  10,
+    //                                          -3, 0,  3);
+
+    // Check where is the image comming from and apply the filter
+    if (Image_from_file)
+    {
+        Process_image_from_file->
+                apply_personalised_filter(Process_image_from_file->originalImage(),
+                                          Process_image_from_file->processedImage(),
+                                          kernel);
+        Process_image_from_file->show_image();
+    }
+
+    if (Image_from_screen)
+    {
+        Process_image_from_screen_thread_pt->kernel() = kernel;
+        Process_image_from_screen_thread_pt->enable_personalised_filter();
+    }
+
+    if (Image_from_camera)
+    {
+        Process_image_from_camera_thread_pt->kernel() = kernel;
+        Process_image_from_camera_thread_pt->enable_personalised_filter();
+    }
+}
+
+void MainWindow::on_sld_canny_threshold_valueChanged(int value)
+{
+    // Scale the value of the slide
+    // Get max. and min. value of slide
+    const unsigned max_slide = ui->sld_canny_threshold->maximum();
+    const unsigned min_slide = ui->sld_canny_threshold->minimum();
+
+    const double max_new = 100.0;
+    const double min_new = 1.0;
+    const double scale_factor = (max_new - min_new) / (max_slide - min_slide);
+
+    // Set the threshold
+    const double low_threshold = min_new + value * scale_factor;
+
+    // Check where is the image comming from and apply the filter
+    if (Image_from_file)
+    {
+        Process_image_from_file->
+                canny_edge_detector(Process_image_from_file->originalImage(),
+                                    Process_image_from_file->processedImage(),
+                                    low_threshold);
+        Process_image_from_file->show_image();
+    }
+
+    if (Image_from_screen)
+    {
+        Process_image_from_screen_thread_pt->
+                low_threshold_canny_filter() = low_threshold;
+        Process_image_from_screen_thread_pt->enable_canny_filter();
+    }
+
+    if (Image_from_camera)
+    {
+        Process_image_from_camera_thread_pt->
+                low_threshold_canny_filter() = low_threshold;
+        Process_image_from_camera_thread_pt->enable_canny_filter();
     }
 }
