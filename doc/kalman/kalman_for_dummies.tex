@@ -117,6 +117,8 @@
 % MY definitions (short-cuts)
 % For vectors
 \newcommand{\vect}[1]{\mathbf{#1}}
+% To add comments
+\newcommand{\deb}[1]{{\color{red} [\texttt{#1}]}}
 
 \author{tachidok}
 \title{The Kalman Filter for Dummies}
@@ -137,29 +139,27 @@
 \section{A brief history}
 \label{sec:brief_history}
 
-The Kalman filter was proposed by Rufold E. K\'alm\'an and Richard. S.
-Bucy in the late 50's and early 60's. But was Stanley F. Schmidt who
+The Kalman filter was proposed by Rufold E. K\'alm\'an\footnote{he got
+  his degrees from the Massachusetts Institute of Technology and the
+  Columbia University. He worked as a researcher in the Research
+  Institute for Advanced Studies in Baltimore, Maryland. He worked as
+  a professor in the Stanford University, the University of Florida
+  and the Swiss Federal Institute of Technology. During his PhD in the
+  MIT, he was supervised by John Ragazzini, who also supervised Eliahu
+  Ibraham Jury, the developer of the advanced Z-transform, and Lotfi
+  Asker Zadeh, the father of fuzzy information.} and Richard S. Bucy
+in the late 50's and early 60's. Stanley F. Schmidt was the one who
 realised that the Kalman filter could be divided into two general
 stages: \textbf{the prediction stage} and \textbf{the update
-  stage}.\footnote{In some literature this is found as the measurement
-  stage.}
+  stage}.\footnote{also called \textit{the measurement stage} in some
+  literature.}.
 
-One of the first application of the Kalman filter was as part of the
-Apollo program, the project that made possible to land a man on the
+One of the first applications of the Kalman filter was as part of the
+Apollo program; the project that made possible to land a man on the
 moon. The Kalman filter is used nowadays in common articles such as
-smart phones, video games and laptops trackpaths. It is also used in
+smartphones, video games and laptops trackpaths. It is also used in
 modern (and not that modern) satellite navigation devices, see
-\cite{Faragher:2012:ARTICLE}.
-
-As a note aside, Rufold E. K\'alm\'an got his degrees from the
-Massachusetts Institute of Technology and the Columbia University. He
-worked as a researcher in the Research Institute for Advanced Studies
-in Baltimore, Maryland. He worked as a professor in the Stanford
-University, the University of Florida and the Swiss Federal Institute
-of Technology. During his PhD in the MIT, he was supervised by John
-Ragazzini, who also supervised Eliahu Ibraham Jury, the developer of
-the advanced Z-transform, and Lotfi Asker Zadeh, the father of fuzzy
-information.
+\cite{Faragher:2012:AR}.
 
 \section{The Kalman}
 The Kalman \textit{filter} got its filter status because it finds
@@ -291,7 +291,7 @@ moves along one direction, see Figure \ref{fig:object_1D_00}.
   \centering
   \includegraphics[width=1.0\textwidth]{object_1D_00}
   \caption{An object moving along one direction. Taken from
-    \cite{Faragher:2012:ARTICLE}.}
+    \cite{Faragher:2012:AR}.}
   \label{fig:object_1D_00}
 \end{figure}
 
@@ -431,7 +431,7 @@ position and the initial velocity of the object, see Figure
   \caption{The initial state of the object with a normal probability
     density function representing the \textit{initial} confidence on
     the estimation of the position. Taken from
-    \cite{Faragher:2012:ARTICLE}.}
+    \cite{Faragher:2012:AR}.}
   \label{fig:object_1D_01}
 \end{figure}
 
@@ -448,7 +448,7 @@ next state of the system, see Figures \ref{fig:object_1D_02} and
   \caption{We can predict the new position of our object, and the new
     uncertainty. Note that the uncertainty has increased due to
     influences of the external world that we are not accounting for in
-    our model.Taken from \cite{Faragher:2012:ARTICLE}.}
+    our model.Taken from \cite{Faragher:2012:AR}.}
   \label{fig:object_1D_02}
 \end{figure}
 
@@ -458,7 +458,7 @@ next state of the system, see Figures \ref{fig:object_1D_02} and
   \caption{We got two estimations for the position of our object; the
     first one based on a mathematical model, and the second one based
     on the actual readings of the sensors. Taken from
-    \cite{Faragher:2012:ARTICLE}.}
+    \cite{Faragher:2012:AR}.}
   \label{fig:object_1D_03}
 \end{figure}
 
@@ -515,7 +515,7 @@ distributions, see Figure \ref{fig:object_1D_04}.
   \caption{Fusion of information by multiplying both
     distributions. From the obtained distribution (the green one) we
     get a better estimate for the state of the system. Taken from
-    \cite{Faragher:2012:ARTICLE}.}
+    \cite{Faragher:2012:AR}.}
   \label{fig:object_1D_04}
 \end{figure}
 
@@ -578,7 +578,7 @@ again. Once you are done, jump into the next section.
 We present a simple implementation based on the mathematical model,
 covariance and transformation matrices presented in the previous
 sections. The implementation is based on the software library
-\texttt{OpenCV} \cite{opencv:2000:ARTICLE}. In order to match and ease
+\texttt{OpenCV} \cite{opencv:2000:AR}. In order to match and ease
 the use of the Kalman filter implemented in that library, we created a
 wrapper class such that the notation in the implementation follows the
 one presented in the previous sections.
@@ -590,7 +590,7 @@ We created the class \texttt{CCKalmanFilter} which is a wrapper to
 \subsubsection{OpenCV's trackers}
 \label{sec:opencv_trackers}
 We use tracker implementations from the software library
-\texttt{OpenCV} \cite{opencv:2000:ARTICLE}
+\texttt{OpenCV} \cite{opencv:2000:AR}
 
 
 n summary, we got our mathematical model
@@ -600,7 +600,7 @@ n summary, we got our mathematical model
 
 
 \section{Implementations of the Kalman filter}
-We use \texttt{OpenCV} \cite{opencv:2000:ARTICLE} implementation of
+We use \texttt{OpenCV} \cite{opencv:2000:AR} implementation of
 the Kalman filter
 
 \section{Conclusions}
