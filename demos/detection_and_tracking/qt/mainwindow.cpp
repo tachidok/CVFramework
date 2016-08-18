@@ -29,19 +29,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ---------------------------------------------------------------
     // Create the thread to capture and display the image
-    Capture_image_thread_pt = new CCCaptureThread();
+    Capture_image_from_screen_thread_pt = new CCCaptureFromScreen();
 
     // Set the capture geometry (region of interest or ROI)
     int width_capture = 640;//160;//640;
     int height_capture = 480;//120;//480;
     int desktop_width = QApplication::desktop()->width();
     int desktop_height = QApplication::desktop()->height();
-    Capture_image_thread_pt->
+    Capture_image_from_screen_thread_pt->
             set_capture_geometry(desktop_width - width_capture - 1, 0,
                                  width_capture, height_capture);
 
     // Do not show the captured image
-    Capture_image_thread_pt->disable_image_displaying();
+    Capture_image_from_screen_thread_pt->disable_image_displaying();
 
     // ---------------------------------------------------------------
     // Initialise the image processer
@@ -52,22 +52,22 @@ MainWindow::MainWindow(QWidget *parent) :
     cv::Mat *process_image_pt = Process_image_thread_pt->image_pt();
 
     // Register the image pointer to store the image there
-    Capture_image_thread_pt->register_image_pointer(process_image_pt);
+    Capture_image_from_screen_thread_pt->register_image_pointer(process_image_pt);
 #endif
 
     // Now set a pointer to the capture thread in the process image thread
     // so it can ask for a new image
-    Process_image_thread_pt->set_capture_thread_pt(Capture_image_thread_pt);
+    Process_image_thread_pt->set_capture_thread_pt(Capture_image_from_screen_thread_pt);
 
     // Get the mutex from the screen capturer and set it to the
     // image processor
     Process_image_thread_pt->
-            set_mutex_pt(&(Capture_image_thread_pt->mutex_capturing_image()));
+            set_mutex_pt(&(Capture_image_from_screen_thread_pt->mutex_capturing_image()));
 
     // ---------------------------------------------------------------
     // Start the threads
     // ---------------------------------------------------------------
-    Capture_image_thread_pt->start_thread();
+    Capture_image_from_screen_thread_pt->start_thread();
     Process_image_thread_pt->start_thread();
 
 }
@@ -83,11 +83,11 @@ MainWindow::~MainWindow()
     Process_image_thread_pt = 0;
 
     // Stop capturing thread
-    Capture_image_thread_pt->stop();
+    Capture_image_from_screen_thread_pt->stop();
 
     // Free memory for capturing thread
-    delete Capture_image_thread_pt;
-    Capture_image_thread_pt = 0;
+    delete Capture_image_from_screen_thread_pt;
+    Capture_image_from_screen_thread_pt = 0;
 
     delete ui;
 }
@@ -186,12 +186,12 @@ void MainWindow::plot(const unsigned x_max, const unsigned y_max)
 
 void MainWindow::on_btn_start_capture_screen_clicked()
 {
-    Capture_image_thread_pt->start_capturing();
+    Capture_image_from_screen_thread_pt->start_capturing();
 }
 
 void MainWindow::on_btn_stop_capture_screen_clicked()
 {
-    Capture_image_thread_pt->interrupt_capturing();
+    Capture_image_from_screen_thread_pt->interrupt_capturing();
 }
 
 void MainWindow::on_btn_start_image_processing_clicked()

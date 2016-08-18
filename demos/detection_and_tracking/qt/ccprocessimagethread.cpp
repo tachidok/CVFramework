@@ -215,13 +215,13 @@ void CCProcessImageThread::run()
             if (Mutex_pt->tryLock())
             {
                 // Is there an image ready from the capturer
-                const bool new_image_ready = Capture_thread_pt->is_new_image_ready();
+                const bool new_image_ready = Capture_from_screen_thread_pt->is_new_image_ready();
 
                 if (new_image_ready)
                 {
                     // Read the image
                     //Image_pt = Capture_thread_pt->image_pt();
-                    Image_pt = Capture_thread_pt->captured_image();
+                    Image = Capture_from_screen_thread_pt->captured_image();
 
                     // Check whether we should stop tracking
                     if (Right_button_pressed)
@@ -257,7 +257,7 @@ void CCProcessImageThread::run()
                             // Get the coordinates of the tracker
                             X_tracker[0] = X_mouse;
                             Y_tracker[0] = Y_mouse;
-                            if ((Tracker_pt[0]->initialise(*Image_pt,
+                            if ((Tracker_pt[0]->initialise(Image,
                                                            X_tracker[0], Y_tracker[0],
                                                            Search_window_size,
                                                            Pattern_window_size)))
@@ -277,7 +277,7 @@ void CCProcessImageThread::run()
                             // Backup the old positions
                             const int old_x_tracker = X_tracker[0];
                             const int old_y_tracker = Y_tracker[0];
-                            if (Tracker_pt[0]->search_pattern(*Image_pt, X_tracker[0], Y_tracker[0]))
+                            if (Tracker_pt[0]->search_pattern(Image, X_tracker[0], Y_tracker[0]))
                             {
                                 // OK, pattern found
                             }
@@ -297,7 +297,7 @@ void CCProcessImageThread::run()
                     if (Do_tracking)
                     {
                         // Draw an square showing the tracking results
-                        draw_square(Image_pt, static_cast<unsigned>(X_tracker[0]),
+                        draw_square(Image, static_cast<unsigned>(X_tracker[0]),
                                  static_cast<unsigned>(Y_tracker[0]),
                                  Pattern_window_size, 255, 0, 0, 1);
 
@@ -312,17 +312,17 @@ void CCProcessImageThread::run()
                     if (Draw_aim)
                     {
                         // Draw an aim following the mouse position
-                        draw_aim(Image_pt, static_cast<unsigned>(X_mouse),
+                        draw_aim(Image, static_cast<unsigned>(X_mouse),
                                  static_cast<unsigned>(Y_mouse),
                                  Pattern_window_size/3, 0, 255, 0, 1);
-                        draw_square(Image_pt, static_cast<unsigned>(X_mouse),
+                        draw_square(Image, static_cast<unsigned>(X_mouse),
                                  static_cast<unsigned>(Y_mouse),
                                  Pattern_window_size, 0, 255, 0, 1);
                     }
 
                     // Just paint it by now
                     //cv::namedWindow(Window_name);
-                    cv::imshow(Window_video, *Image_pt);
+                    cv::imshow(Window_video, Image);
                 }
                 else
                 {
@@ -334,7 +334,7 @@ void CCProcessImageThread::run()
 
                 // Once all the image processing has been done mark the image
                 // as consumed
-                Capture_thread_pt->consume_new_image();
+                Capture_from_screen_thread_pt->consume_new_image();
 
             }
 
@@ -355,40 +355,40 @@ void CCProcessImageThread::run()
 // ======================================================================
 // Method to draw an aim
 // ======================================================================
-void CCProcessImageThread::draw_aim(cv::Mat *image_pt, const unsigned x,
+void CCProcessImageThread::draw_aim(cv::Mat &image, const unsigned x,
                                     const unsigned y, const unsigned half_size,
                                     const unsigned r, const unsigned g, const unsigned b,
                                     const unsigned thickness,
                                     const unsigned type_line)
 {
     // The centre of the aim MUST be wihtin the limits of the image
-    if (static_cast<int>(x) > image_pt->cols) {return;}
-    if (static_cast<int>(y) > image_pt->rows) {return;}
+    if (static_cast<int>(x) > image.cols) {return;}
+    if (static_cast<int>(y) > image.rows) {return;}
 
     // Horizontal line
-    cv::line(*image_pt, cv::Point(x-half_size, y), cv::Point(x+half_size, y),
+    cv::line(image, cv::Point(x-half_size, y), cv::Point(x+half_size, y),
              cv::Scalar(b, g, r), thickness);
     // Vertical line
-    cv::line(*image_pt, cv::Point(x, y-half_size), cv::Point(x, y+half_size),
+    cv::line(image, cv::Point(x, y-half_size), cv::Point(x, y+half_size),
              cv::Scalar(b, g, r), thickness, type_line);
 }
 
 // ======================================================================
 // Method to draw a square
 // ======================================================================
-void CCProcessImageThread::draw_square(cv::Mat *image_pt, const unsigned x,
+void CCProcessImageThread::draw_square(cv::Mat &image, const unsigned x,
                                        const unsigned y, const unsigned half_size,
                                        const unsigned r, const unsigned g, const unsigned b,
                                        const unsigned thickness,
                                        const unsigned type_line)
 {
     // The centre of the aim MUST be wihtin the limits of the image
-    if (static_cast<int>(x) > image_pt->cols) {return;}
-    if (static_cast<int>(y) > image_pt->rows) {return;}
+    if (static_cast<int>(x) > image.cols) {return;}
+    if (static_cast<int>(y) > image.rows) {return;}
 
     // Create a Rect object (integer due to no sub-pixels)
     cv::Rect draw_rect(x-half_size, y-half_size, half_size*2, half_size*2);
-    cv::rectangle(*image_pt, draw_rect, cv::Scalar(b, g, r), thickness,
+    cv::rectangle(image, draw_rect, cv::Scalar(b, g, r), thickness,
                   type_line);
 }
 

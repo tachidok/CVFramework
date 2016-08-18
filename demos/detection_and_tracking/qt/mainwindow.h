@@ -10,7 +10,7 @@
 // -----------------------------------------------------------------------
 // Screen capture thread
 // -----------------------------------------------------------------------
-#include "../../../src/screen_capture/cccapturethread.h"
+#include "../../../src/video_capture/cc_capture_from_screen.h"
 // -----------------------------------------------------------------------
 // Process image thread
 // -----------------------------------------------------------------------
@@ -61,7 +61,7 @@ private:
     // Thread stuff
     // ---------------------------------------------------------------
     // The thread in charge of capturing and displaying the image
-    CCCaptureThread *Capture_image_thread_pt;
+    CCCaptureFromScreen *Capture_image_from_screen_thread_pt;
 
     // The thread in charge of processing the image
     CCProcessImageThread *Process_image_thread_pt;

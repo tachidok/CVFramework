@@ -31,7 +31,8 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.cpp \
     ../../../src/kalman/cckalmanfilter.cpp \
-    ../../../src/screen_capture/cccapturethread.cpp \
+    ../../../src/video_capture/ac_capture_thread.cpp \
+    ../../../src/video_capture/cc_capture_from_screen.cpp \
     ccprocessimagethread.cpp \
     ../../../src/tracker/catracker.cpp \
     ../../../src/tracker/ccnormaldisttracker.cpp \
@@ -42,7 +43,8 @@ HEADERS  += mainwindow.h \
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.h \
     ../../../src/kalman/cckalmanfilter.h \
     ../../../src/general/general_includes.h \
-    ../../../src/screen_capture/cccapturethread.h \
+    ../../../src/video_capture/ac_capture_thread.h \
+    ../../../src/video_capture/cc_capture_from_screen.h \
     ccprocessimagethread.h \
     ../../../src/tracker/catracker.h \
     ../../../src/tracker/ccnormaldisttracker.h \

@@ -9,7 +9,7 @@
 #include "../../../src/general/general_includes.h"
 // -----------------------------------------------------------------------
 // Include for the screen capturer
-#include "../../../src/screen_capture/cccapturethread.h"
+#include "../../../src/video_capture/cc_capture_from_screen.h"
 // -----------------------------------------------------------------------
 // Kalman Filter
 #include "../../../src/kalman/cckalmanfilter.h"
@@ -60,12 +60,12 @@ public:
     {Thread.start();}
 
     // Get a pointer to the image
-    inline cv::Mat *image_pt()
-    {return Image_pt;}
+    inline cv::Mat image()
+    {return Image;}
 
     // Set the capture thread pointer
-    inline void set_capture_thread_pt(CCCaptureThread *capture_thread_pt)
-    {Capture_thread_pt = capture_thread_pt;}
+    inline void set_capture_thread_pt(CCCaptureFromScreen *capture_thread_pt)
+    {Capture_from_screen_thread_pt = capture_thread_pt;}
 
     // Set mutex to avoid reading an image when it is been written
     // by the capturer
@@ -95,14 +95,14 @@ public:
     // -------------------------------------------------------------------
 
     // Method to draw an aim
-    void draw_aim(cv::Mat *image_pt, const unsigned x, const unsigned y,
+    void draw_aim(cv::Mat &image, const unsigned x, const unsigned y,
                   const unsigned half_size,
                   const unsigned r, const unsigned g, const unsigned b,
                   const unsigned thickness = 1,
                   const unsigned type_line = cv::LINE_8);
 
     // Draw a square
-    void draw_square(cv::Mat *image_pt, const unsigned x, const unsigned y,
+    void draw_square(cv::Mat &image, const unsigned x, const unsigned y,
                      const unsigned half_size,
                      const unsigned r, const unsigned g, const unsigned b,
                      const unsigned thickness = 1,
@@ -213,7 +213,7 @@ protected:
     // Image capturing
     // -------------------------------------------------------------------
     // The screen capturer
-    CCCaptureThread *Capture_thread_pt;
+    CCCaptureFromScreen *Capture_from_screen_thread_pt;
 
     // The mutex from the screen capturer
     QMutex *Mutex_pt;
@@ -232,7 +232,7 @@ protected:
     const unsigned Miliseconds;
 
     // The image pointer
-    cv::Mat *Image_pt;
+    cv::Mat Image;
 
     // The name of the window that shows the tracking or output
     // from the tracker
