@@ -45,8 +45,8 @@ SOURCES += main.cpp\
     ../../../src/tracker/ccsimpletracker.cpp \
     ../../../src/kalman/cckalmanfilter.cpp \
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.cpp \
-    ../../../src/tracker/ccopencvtracker.cpp \
-    ../../../src/screen_capture/cccapturescreenx11.cpp
+    ../../../src/tracker/ccopencvtracker.cpp
+    #../../../src/screen_capture/cccapturescreenx11.cpp
 
 HEADERS  += mainwindow.h \
     extended_label.h \
@@ -55,7 +55,7 @@ HEADERS  += mainwindow.h \
     ../../../src/tracker/ccsimpletracker.h \
     ../../../src/kalman/cckalmanfilter.h \
     ../../../external_src/qcustomplot/qcustomplot/qcustomplot.h \
-    ../../../src/tracker/ccopencvtracker.h \
-    ../../../src/screen_capture/cccapturescreenx11.h
+    ../../../src/tracker/ccopencvtracker.h
+    #../../../src/screen_capture/cccapturescreenx11.h
 
 FORMS    += mainwindow.ui
